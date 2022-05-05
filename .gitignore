@@ -21,3 +21,15 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+minijava_semantic_analysis/syntaxtree
+minijava_semantic_analysis/visitor
+
+minijava_semantic_analysis/JavaCharStream.java
+minijava_semantic_analysis/minijava-jtb.jj
+minijava_semantic_analysis/MiniJavaParser.java
+minijava_semantic_analysis/MiniJavaParserConstants.java
+minijava_semantic_analysis/MiniJavaParserTokenManager.java
+minijava_semantic_analysis/ParseException.java
+minijava_semantic_analysis/Token.java
+minijava_semantic_analysis/TokenMgrError.java
