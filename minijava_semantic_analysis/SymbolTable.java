@@ -6,7 +6,7 @@ import java.util.List;
 public class SymbolTable {
     Map<String, String> inherits = new HashMap<String, String>(); /* class1 extends class2 */
     Map<String, List<String>> field_in_class = new HashMap<String, List<String>>(); /* field(1) is declared in list of classes(2) */
-    Map<String, List<MethodInfo>> method_in_class = new HashMap<String, List<MethodInfo>>(); /* method(1) is declared in list of classes(2) */
+    Map<String, Map<String, MethodInfo>> method_in_class = new HashMap<String, Map<String, MethodInfo>>(); /* method(1) is declared in list of classes(2) */
     Map<String, Map<String, Map<String, MethodInfo>>> var_in_method_in_class = new HashMap<String,Map<String,Map<String, MethodInfo>>>();; /* variable(1) is declared in method(2) */
 
     public void addClassDeclaration(String ClassName) throws Exception { 
@@ -49,50 +49,37 @@ public class SymbolTable {
     }
 
     public void addClassMethod(String MethodName, String ClassName, List<String> args, String ReturnType) throws Exception {
-        List<MethodInfo> methodinfo_list = method_in_class.get(MethodName);
-        
-        /* create a method info object */
-        MethodInfo new_method_info = new MethodInfo(MethodName, ClassName, args, ReturnType);
-        
-        if (methodinfo_list == null){
-            methodinfo_list = new LinkedList<MethodInfo>();
-        } 
-        else if (methodinfo_list.contains(new_method_info)) {
-            throw new Exception("Method <" + MethodName + "> already declared in class <" + ClassName + ">");
-        }
-
-        methodinfo_list.add(new_method_info);
-        method_in_class.put(MethodName, methodinfo_list);
 
         /* TODO: Add checks for superclass override */
+
+        Map<String, MethodInfo> get_class_map = method_in_class.get(MethodName);
+        if (get_class_map != null){
+            MethodInfo method_info = get_class_map.get(ClassName);
+            if (method_info != null) {
+                throw new Exception("Method <" + MethodName + "> already declared in class <" + ClassName + ">");
+            }
+            else {
+                method_info = new MethodInfo(MethodName, ClassName, args, ReturnType);
+                get_class_map.put(ClassName, method_info);
+            }
+        }
+        else {
+            get_class_map = new HashMap<String, MethodInfo>();
+            MethodInfo method_info = new MethodInfo(MethodName, ClassName, args, ReturnType);
+            get_class_map.put(ClassName, method_info);
+            method_in_class.put(MethodName, get_class_map);
+        }
     }
 
     public void addMethodVariable(String VariableName, String MethodName, String ClassName) throws Exception { /* method should already exist in method_in_class map */
-        // HashMap<String, MethodInfo> methodinfo_list = var_in_method_in_class.get(VariableName);
         
-        List<MethodInfo> declared_methods_list = method_in_class.get(MethodName);
+        Map<String, MethodInfo> declared_methods_map_class = method_in_class.get(MethodName);
+        MethodInfo method = declared_methods_map_class.get(ClassName);
 
         /* check if method doesn't exist in methods' map: THIS SHOULD NOT HAPPEN */
-        MethodInfo temp_method_info = new MethodInfo(MethodName, ClassName);
-        if (!declared_methods_list.contains(temp_method_info)) {
+        if (method == null) {
             throw new Exception("Method <" + MethodName + "> at <" + ClassName + "> not declared when trying to insert <" + VariableName + "> into Symbol Table");
         }
-        
-        // /* get list */
-        // if (methodinfo_list == null){
-        //     methodinfo_list = new LinkedList<MethodInfo>();
-        // } 
-        // /* check if variable already exists */
-        // else if (methodinfo_list.contains(temp_method_info)) {
-        //     throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> in class <" + ClassName + ">");
-        // }
-
-        // /* TODO: check if variable exists in args */
-        
-        // methodinfo_list.add(temp_method_info);
-        // method_in_class.put(MethodName, methodinfo_list);
-        
-        // MethodInfo temp_method_info = new MethodInfo(MethodName, ClassName);
         
         /* first search by VariableName in map */
         Map<String, Map<String, MethodInfo>> first= var_in_method_in_class.get(VariableName);
@@ -106,13 +93,13 @@ public class SymbolTable {
                     throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> in class <" + ClassName + ">");
                 }
                 else {
-                    second.put(ClassName, temp_method_info);
+                    second.put(ClassName, method);
                 }
             }
             else { 
                 /* create second and put */
                 second = new HashMap<String, MethodInfo>();
-                second.put(ClassName, temp_method_info);
+                second.put(ClassName, method);
                 first.put(MethodName, second);
             }
         }
@@ -120,7 +107,7 @@ public class SymbolTable {
             /* create first and second and put */
             first = new HashMap<String, Map<String, MethodInfo>>();
             Map<String, MethodInfo> second = new HashMap<String, MethodInfo>();
-            second.put(ClassName, temp_method_info);
+            second.put(ClassName, method);
             first.put(MethodName, second);
         }
     
