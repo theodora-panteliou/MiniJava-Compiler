@@ -213,6 +213,20 @@ void Type() :
 void ArrayType() :
 {}
 {
+  BooleanArrayType()
+|
+  IntegerArrayType()
+}
+
+void BooleanArrayType() :
+{}
+{
+  "boolean" "[" "]"
+}
+
+void IntegerArrayType() :
+{}
+{
   "int" "[" "]"
 }
 
@@ -285,7 +299,7 @@ void PrintStatement() :
 void Expression() :
 {}
 {
-  LOOKAHEAD( PrimaryExpression() "&&" )
+  LOOKAHEAD( Clause() "&&" )
   AndExpression()
 |
   LOOKAHEAD( PrimaryExpression() "<" )
@@ -309,13 +323,13 @@ void Expression() :
   LOOKAHEAD( PrimaryExpression() "." Identifier() "(" )
   MessageSend()
 | 
-  PrimaryExpression()
+  Clause()
 }
 
 void AndExpression() :
 {} 
 {
-  PrimaryExpression() "&&" PrimaryExpression()
+  Clause() "&&" Clause()
 }
 
 void CompareExpression() :
@@ -379,6 +393,13 @@ void ExpressionTerm() :
   "," Expression()
 }
 
+void Clause() :
+{}
+{
+    NotExpression()
+  | PrimaryExpression()
+}
+
 void PrimaryExpression() :
 {}
 {
@@ -396,8 +417,6 @@ void PrimaryExpression() :
   ArrayAllocationExpression()
 |
   AllocationExpression()
-|   
-  NotExpression()
 |   
   BracketExpression()
 }
@@ -436,6 +455,22 @@ void ThisExpression() :
 void ArrayAllocationExpression() :
 {}
 {
+  LOOKAHEAD(3)
+  BooleanArrayAllocationExpression()
+|
+  LOOKAHEAD(3)
+  IntegerArrayAllocationExpression()
+}
+
+void BooleanArrayAllocationExpression() :
+{}
+{
+  "new" "boolean" "[" Expression() "]"
+}
+
+void IntegerArrayAllocationExpression() :
+{}
+{
   "new" "int" "[" Expression() "]"
 }
 
@@ -448,7 +483,7 @@ void AllocationExpression() :
 void NotExpression() :
 {}
 {
-  "!" PrimaryExpression() 
+  "!" Clause()
 }
 
 void BracketExpression() :
@@ -456,3 +491,4 @@ void BracketExpression() :
 {
   "(" Expression() ")"
 }
+

@@ -1,347 +1,348 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<HTML>
-<HEAD>
-<TITLE>BNF for minijava.jj</TITLE>
-</HEAD>
-<BODY>
-<H1 ALIGN=CENTER>BNF for minijava.jj</H1>
-<H2 ALIGN=CENTER>NON-TERMINALS</H2>
-<TABLE>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod1">Goal</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod2">MainClass</A> ( <A HREF="#prod3">TypeDeclaration</A> )* &lt;EOF&gt;</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod2">MainClass</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"class" <A HREF="#prod4">Identifier</A> "{" "public" "static" "void" "main" "(" "String" "[" "]" <A HREF="#prod4">Identifier</A> ")" "{" ( <A HREF="#prod5">VarDeclaration</A> )* ( <A HREF="#prod6">Statement</A> )* "}" "}"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod3">TypeDeclaration</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod7">ClassDeclaration</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod8">ClassExtendsDeclaration</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod7">ClassDeclaration</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"class" <A HREF="#prod4">Identifier</A> "{" ( <A HREF="#prod5">VarDeclaration</A> )* ( <A HREF="#prod9">MethodDeclaration</A> )* "}"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod8">ClassExtendsDeclaration</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"class" <A HREF="#prod4">Identifier</A> "extends" <A HREF="#prod4">Identifier</A> "{" ( <A HREF="#prod5">VarDeclaration</A> )* ( <A HREF="#prod9">MethodDeclaration</A> )* "}"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod5">VarDeclaration</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod10">Type</A> <A HREF="#prod4">Identifier</A> ";"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod9">MethodDeclaration</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"public" <A HREF="#prod10">Type</A> <A HREF="#prod4">Identifier</A> "(" ( <A HREF="#prod11">FormalParameterList</A> )? ")" "{" ( <A HREF="#prod5">VarDeclaration</A> )* ( <A HREF="#prod6">Statement</A> )* "return" <A HREF="#prod12">Expression</A> ";" "}"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod11">FormalParameterList</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod13">FormalParameter</A> ( <A HREF="#prod14">FormalParameterRest</A> )*</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod13">FormalParameter</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod10">Type</A> <A HREF="#prod4">Identifier</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod14">FormalParameterRest</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"," <A HREF="#prod13">FormalParameter</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod10">Type</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod15">ArrayType</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod16">BooleanType</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod17">IntegerType</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod4">Identifier</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod15">ArrayType</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"int" "[" "]"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod16">BooleanType</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"boolean"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod17">IntegerType</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"int"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod6">Statement</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod18">Block</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod19">AssignmentStatement</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod20">ArrayAssignmentStatement</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod21">IfStatement</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod22">WhileStatement</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod23">PrintStatement</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod18">Block</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"{" ( <A HREF="#prod6">Statement</A> )* "}"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod19">AssignmentStatement</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod4">Identifier</A> "=" <A HREF="#prod12">Expression</A> ";"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod20">ArrayAssignmentStatement</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod4">Identifier</A> "[" <A HREF="#prod12">Expression</A> "]" "=" <A HREF="#prod12">Expression</A> ";"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod21">IfStatement</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"if" "(" <A HREF="#prod12">Expression</A> ")" <A HREF="#prod6">Statement</A> "else" <A HREF="#prod6">Statement</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod22">WhileStatement</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"while" "(" <A HREF="#prod12">Expression</A> ")" <A HREF="#prod6">Statement</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod23">PrintStatement</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"System.out.println" "(" <A HREF="#prod12">Expression</A> ")" ";"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod12">Expression</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod24">AndExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod25">CompareExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod26">PlusExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod27">MinusExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod28">TimesExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod29">ArrayLookup</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod30">ArrayLength</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod31">MessageSend</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod32">PrimaryExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod24">AndExpression</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod32">PrimaryExpression</A> "&amp;&amp;" <A HREF="#prod32">PrimaryExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod25">CompareExpression</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod32">PrimaryExpression</A> "&lt;" <A HREF="#prod32">PrimaryExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod26">PlusExpression</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod32">PrimaryExpression</A> "+" <A HREF="#prod32">PrimaryExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod27">MinusExpression</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod32">PrimaryExpression</A> "-" <A HREF="#prod32">PrimaryExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod28">TimesExpression</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod32">PrimaryExpression</A> "*" <A HREF="#prod32">PrimaryExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod29">ArrayLookup</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod32">PrimaryExpression</A> "[" <A HREF="#prod32">PrimaryExpression</A> "]"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod30">ArrayLength</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod32">PrimaryExpression</A> "." "length"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod31">MessageSend</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod32">PrimaryExpression</A> "." <A HREF="#prod4">Identifier</A> "(" ( <A HREF="#prod33">ExpressionList</A> )? ")"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod33">ExpressionList</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod12">Expression</A> ( <A HREF="#prod34">ExpressionRest</A> )*</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod34">ExpressionRest</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"," <A HREF="#prod12">Expression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod32">PrimaryExpression</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod35">IntegerLiteral</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod36">TrueLiteral</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod37">FalseLiteral</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod4">Identifier</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod38">ThisExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod39">ArrayAllocationExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod40">AllocationExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod41">NotExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod42">BracketExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod35">IntegerLiteral</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>&lt;INTEGER_LITERAL&gt;</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod36">TrueLiteral</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"true"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod37">FalseLiteral</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"false"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod4">Identifier</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>&lt;IDENTIFIER&gt;</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod38">ThisExpression</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"this"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod39">ArrayAllocationExpression</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"new" "int" "[" <A HREF="#prod12">Expression</A> "]"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod40">AllocationExpression</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"new" <A HREF="#prod4">Identifier</A> "(" ")"</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod41">NotExpression</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"!" <A HREF="#prod32">PrimaryExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod42">BracketExpression</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>"(" <A HREF="#prod12">Expression</A> ")"</TD>
-</TR>
-</TABLE>
-</BODY>
-</HTML>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!-- saved from url=(0104)file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>BNF for minijava.jj</title>
+</head>
+<body>
+<h1 align="CENTER">BNF for minijava.jj</h1>
+<h2 align="CENTER">NON-TERMINALS</h2>
+<table>
+<tbody><tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod1">Goal</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod2">MainClass</a> ( <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod3">TypeDeclaration</a> )* &lt;EOF&gt;</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod2">MainClass</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"class" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod4">Identifier</a> "{" "public" "static" "void" "main" "(" "String" "[" "]" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod4">Identifier</a> ")" "{" ( <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod5">VarDeclaration</a> )* ( <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod6">Statement</a> )* "}" "}"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod3">TypeDeclaration</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod7">ClassDeclaration</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod8">ClassExtendsDeclaration</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod7">ClassDeclaration</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"class" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod4">Identifier</a> "{" ( <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod5">VarDeclaration</a> )* ( <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod9">MethodDeclaration</a> )* "}"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod8">ClassExtendsDeclaration</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"class" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod4">Identifier</a> "extends" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod4">Identifier</a> "{" ( <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod5">VarDeclaration</a> )* ( <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod9">MethodDeclaration</a> )* "}"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod5">VarDeclaration</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod10">Type</a> <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod4">Identifier</a> ";"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod9">MethodDeclaration</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"public" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod10">Type</a> <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod4">Identifier</a> "(" ( <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod11">FormalParameterList</a> )? ")" "{" ( <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod5">VarDeclaration</a> )* ( <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod6">Statement</a> )* "return" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod12">Expression</a> ";" "}"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod11">FormalParameterList</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod13">FormalParameter</a> ( <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod14">FormalParameterRest</a> )*</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod13">FormalParameter</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod10">Type</a> <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod4">Identifier</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod14">FormalParameterRest</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"," <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod13">FormalParameter</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod10">Type</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod15">ArrayType</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod16">BooleanType</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod17">IntegerType</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod4">Identifier</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod15">ArrayType</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"int" "[" "]"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod16">BooleanType</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"boolean"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod17">IntegerType</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"int"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod6">Statement</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod18">Block</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod19">AssignmentStatement</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod20">ArrayAssignmentStatement</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod21">IfStatement</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod22">WhileStatement</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod23">PrintStatement</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod18">Block</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"{" ( <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod6">Statement</a> )* "}"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod19">AssignmentStatement</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod4">Identifier</a> "=" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod12">Expression</a> ";"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod20">ArrayAssignmentStatement</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod4">Identifier</a> "[" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod12">Expression</a> "]" "=" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod12">Expression</a> ";"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod21">IfStatement</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"if" "(" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod12">Expression</a> ")" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod6">Statement</a> "else" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod6">Statement</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod22">WhileStatement</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"while" "(" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod12">Expression</a> ")" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod6">Statement</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod23">PrintStatement</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"System.out.println" "(" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod12">Expression</a> ")" ";"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod12">Expression</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod24">AndExpression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod25">CompareExpression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod26">PlusExpression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod27">MinusExpression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod28">TimesExpression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod29">ArrayLookup</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod30">ArrayLength</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod31">MessageSend</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod32">PrimaryExpression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod24">AndExpression</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod32">PrimaryExpression</a> "&amp;&amp;" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod32">PrimaryExpression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod25">CompareExpression</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod32">PrimaryExpression</a> "&lt;" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod32">PrimaryExpression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod26">PlusExpression</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod32">PrimaryExpression</a> "+" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod32">PrimaryExpression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod27">MinusExpression</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod32">PrimaryExpression</a> "-" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod32">PrimaryExpression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod28">TimesExpression</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod32">PrimaryExpression</a> "*" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod32">PrimaryExpression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod29">ArrayLookup</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod32">PrimaryExpression</a> "[" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod32">PrimaryExpression</a> "]"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod30">ArrayLength</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod32">PrimaryExpression</a> "." "length"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod31">MessageSend</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod32">PrimaryExpression</a> "." <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod4">Identifier</a> "(" ( <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod33">ExpressionList</a> )? ")"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod33">ExpressionList</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod12">Expression</a> ( <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod34">ExpressionRest</a> )*</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod34">ExpressionRest</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"," <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod12">Expression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod32">PrimaryExpression</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod35">IntegerLiteral</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod36">TrueLiteral</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod37">FalseLiteral</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod4">Identifier</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod38">ThisExpression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod39">ArrayAllocationExpression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod40">AllocationExpression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod41">NotExpression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"></td>
+<td align="CENTER" valign="BASELINE">|</td>
+<td align="LEFT" valign="BASELINE"><a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod42">BracketExpression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod35">IntegerLiteral</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">&lt;INTEGER_LITERAL&gt;</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod36">TrueLiteral</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"true"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod37">FalseLiteral</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"false"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod4">Identifier</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">&lt;IDENTIFIER&gt;</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod38">ThisExpression</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"this"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod39">ArrayAllocationExpression</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"new" "int" "[" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod12">Expression</a> "]"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod40">AllocationExpression</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"new" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod4">Identifier</a> "(" ")"</td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod41">NotExpression</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"!" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod32">PrimaryExpression</a></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="BASELINE"><a name="prod42">BracketExpression</a></td>
+<td align="CENTER" valign="BASELINE">::=</td>
+<td align="LEFT" valign="BASELINE">"(" <a href="file://wsl%24/Ubuntu-20.04/home/dora/MiniJava-Semantic-Analysis/minijava_semantic_analysis/minijava.html#prod12">Expression</a> ")"</td>
+</tr>
+</tbody></table>
+
+
+</body></html>
