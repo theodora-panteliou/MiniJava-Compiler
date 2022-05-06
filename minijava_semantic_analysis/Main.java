@@ -23,7 +23,7 @@ public class Main {
 
             System.err.println("Program parsed successfully.");
 
-            MyVisitor eval = new MyVisitor();
+            FirstVisitor eval = new FirstVisitor();
             root.accept(eval, null);
         }
         catch(ParseException ex){
