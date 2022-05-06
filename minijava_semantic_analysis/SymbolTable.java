@@ -72,7 +72,7 @@ public class SymbolTable {
             method_in_class.put(MethodName, get_class_map);
         }
 
-        /* TODO: Add checks for superclass override */
+        /* check for superclass override */
         /* repeat until you find a superclass with the same method name or null */
         MethodInfo method_info = new MethodInfo(MethodName, ClassName, args, ReturnType);
         ClassInfo curr_class = class_dec.get(ClassName).getSuper();
