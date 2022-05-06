@@ -50,8 +50,6 @@ public class SymbolTable {
 
     public void addClassMethod(String MethodName, String ClassName, List<String> args, String ReturnType) throws Exception {
 
-        /* TODO: Add checks for superclass override */
-
         Map<String, MethodInfo> get_class_map = method_in_class.get(MethodName);
         if (get_class_map != null){
             MethodInfo method_info = get_class_map.get(ClassName);
@@ -69,6 +67,9 @@ public class SymbolTable {
             get_class_map.put(ClassName, method_info);
             method_in_class.put(MethodName, get_class_map);
         }
+
+        /* TODO: Add checks for superclass override */
+        /* repeat until you find a superclass with the same method name or null */
     }
 
     public void addMethodVariable(String VariableName, String MethodName, String ClassName) throws Exception { /* method should already exist in method_in_class map */
@@ -93,6 +94,9 @@ public class SymbolTable {
                     throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> in class <" + ClassName + ">");
                 }
                 else {
+                    if (third.hasArg(VariableName)){
+                        throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> as argument in class <" + ClassName + ">");
+                    }
                     second.put(ClassName, method);
                 }
             }
@@ -141,5 +145,9 @@ class MethodInfo { /* holds all information for the method */
         MethodInfo that = (MethodInfo) o;
         return MethodName.equals(that.MethodName) &&
         ClassName.equals(that.ClassName);
+    }
+
+    public boolean hasArg(String name) {
+        return args.contains(name);
     }
 }
