@@ -1,20 +1,23 @@
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 import java.util.List;
 
 public class SymbolTable {
-    Map<String, String> inherits = new HashMap<String, String>(); /* class1 extends class2 */
+    Map<String, ClassInfo> class_dec = new HashMap<String, ClassInfo>(); /* class1 extends class2 */
     Map<String, List<String>> field_in_class = new HashMap<String, List<String>>(); /* field(1) is declared in list of classes(2) */
     Map<String, Map<String, MethodInfo>> method_in_class = new HashMap<String, Map<String, MethodInfo>>(); /* method(1) is declared in list of classes(2) */
     Map<String, Map<String, Map<String, MethodInfo>>> var_in_method_in_class = new HashMap<String,Map<String,Map<String, MethodInfo>>>();; /* variable(1) is declared in method(2) */
 
     public void addClassDeclaration(String ClassName) throws Exception { 
-        if (inherits.containsKey(ClassName)){
+        if (class_dec.containsKey(ClassName)){
             throw new Exception("Class "+ ClassName + "already defined");
         }
         else {
-            inherits.put(ClassName, null); 
+            ClassInfo new_class = new ClassInfo(ClassName, null);
+            class_dec.put(ClassName, new_class);
         }
     }
 
@@ -25,14 +28,15 @@ public class SymbolTable {
         if (SuperName == null){
             addClassDeclaration(ClassName);
         }
-        else if (inherits.containsKey(ClassName)){
+        else if (class_dec.containsKey(ClassName)){
             throw new Exception("Class "+ ClassName + "already defined");
         }
-        else if (!inherits.containsKey(SuperName)){
+        else if (!class_dec.containsKey(SuperName)){
             throw new Exception("The superclass <"+ SuperName + "> that class <" + ClassName + "> inherits from is not defined");
         } 
         else {
-            inherits.put(ClassName, SuperName);
+            ClassInfo new_class = new ClassInfo(ClassName, class_dec.get(SuperName));
+            class_dec.put(ClassName, new_class);
         }
     }
 
@@ -70,6 +74,18 @@ public class SymbolTable {
 
         /* TODO: Add checks for superclass override */
         /* repeat until you find a superclass with the same method name or null */
+        MethodInfo method_info = new MethodInfo(MethodName, ClassName, args, ReturnType);
+        ClassInfo curr_class = class_dec.get(ClassName).getSuper();
+        while (curr_class != null){
+            MethodInfo temp = curr_class.getMethod(MethodName);
+            if (temp != null){
+                if (!method_info.equals(temp)){
+                    throw new Exception("Invalid method override in method <" + MethodName + "> in class <" + ClassName + ">. Previous definition was in class <" + curr_class.name() +">.");
+                }
+                break;
+            }
+            curr_class = curr_class.getSuper();
+        }
     }
 
     public void addMethodVariable(String VariableName, String MethodName, String ClassName) throws Exception { /* method should already exist in method_in_class map */
@@ -132,10 +148,10 @@ class MethodInfo { /* holds all information for the method */
         this.ReturnType = ReturnType;
     }
 
-    MethodInfo(String MethodName, String ClassName){ /* for comparisons */
-        this.ClassName = ClassName;
-        this.MethodName = MethodName;
-    }
+    // MethodInfo(String MethodName, String ClassName){ /* for comparisons */
+    //     this.ClassName = ClassName;
+    //     this.MethodName = MethodName;
+    // }
 
     @Override
     public boolean equals(Object o) {
@@ -143,11 +159,40 @@ class MethodInfo { /* holds all information for the method */
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MethodInfo that = (MethodInfo) o;
+        
         return MethodName.equals(that.MethodName) &&
-        ClassName.equals(that.ClassName);
+        ClassName.equals(that.ClassName) &&
+        ReturnType.equals(that.ReturnType) &&
+        args.equals(that.args);
     }
 
     public boolean hasArg(String name) {
         return args.contains(name);
+    }
+}
+
+class ClassInfo {
+    String name;
+    ClassInfo superclass;
+    Map<String, MethodInfo> methods = new HashMap<String, MethodInfo>();
+
+    ClassInfo(String name, ClassInfo superclass){
+        this.name = name;
+    }
+
+    public void addMethod(String name,MethodInfo method){
+        methods.put(name, method);
+    }
+
+    public MethodInfo getMethod(String name){
+        return methods.get(name);
+    }
+    
+    public ClassInfo getSuper(){
+        return superclass;
+    }
+
+    public String name(){
+        return name;
     }
 }
