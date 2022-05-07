@@ -1,8 +1,6 @@
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Set;
 import java.util.List;
 
 public class SymbolTable {
@@ -52,7 +50,7 @@ public class SymbolTable {
         field_in_class.put(FieldName, classes_list);
     }
 
-    public void addClassMethod(String MethodName, String ClassName, List<String> args, String ReturnType) throws Exception {
+    public void addClassMethod(String MethodName, String ClassName, List<String> arg_names, List<String> arg_types, String ReturnType) throws Exception {
 
         Map<String, MethodInfo> get_class_map = method_in_class.get(MethodName);
         if (get_class_map != null){
@@ -61,20 +59,20 @@ public class SymbolTable {
                 throw new Exception("Method <" + MethodName + "> already declared in class <" + ClassName + ">");
             }
             else {
-                method_info = new MethodInfo(MethodName, ClassName, args, ReturnType);
+                method_info = new MethodInfo(MethodName, ClassName, arg_names, arg_types, ReturnType);
                 get_class_map.put(ClassName, method_info);
             }
         }
         else {
             get_class_map = new HashMap<String, MethodInfo>();
-            MethodInfo method_info = new MethodInfo(MethodName, ClassName, args, ReturnType);
+            MethodInfo method_info = new MethodInfo(MethodName, ClassName, arg_names, arg_types, ReturnType);
             get_class_map.put(ClassName, method_info);
             method_in_class.put(MethodName, get_class_map);
         }
 
         /* check for superclass override */
         /* repeat until you find a superclass with the same method name or null */
-        MethodInfo method_info = new MethodInfo(MethodName, ClassName, args, ReturnType);
+        MethodInfo method_info = new MethodInfo(MethodName, ClassName, arg_names, arg_types, ReturnType);
         ClassInfo curr_class = class_dec.get(ClassName).getSuper();
         while (curr_class != null){
             MethodInfo temp = curr_class.getMethod(MethodName);
@@ -110,7 +108,8 @@ public class SymbolTable {
                     throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> in class <" + ClassName + ">");
                 }
                 else {
-                    if (third.hasArg(VariableName)){
+                    /* check if the variable name appears as argument */
+                    if (method.hasArgName(VariableName)){ /* method from ethod_in_class map */
                         throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> as argument in class <" + ClassName + ">");
                     }
                     second.put(ClassName, method);
@@ -139,12 +138,14 @@ class MethodInfo { /* holds all information for the method */
     String ClassName;
     String MethodName;
     String ReturnType;
-    List<String> args;
+    List<String> arg_names;
+    List<String> arg_types;
 
-    MethodInfo(String MethodName, String ClassName, List<String> args, String ReturnType){ /* proper initialization */
+    MethodInfo(String MethodName, String ClassName, List<String> arg_names, List<String> arg_types, String ReturnType){ /* proper initialization */
         this.ClassName = ClassName;
         this.MethodName = MethodName;
-        this.args = args;
+        this.arg_names = arg_names;
+        this.arg_types = arg_types;
         this.ReturnType = ReturnType;
     }
 
@@ -163,11 +164,11 @@ class MethodInfo { /* holds all information for the method */
         return MethodName.equals(that.MethodName) &&
         ClassName.equals(that.ClassName) &&
         ReturnType.equals(that.ReturnType) &&
-        args.equals(that.args);
+        arg_types.equals(that.arg_types); /* 2 methods are considered equals based on types */
     }
 
-    public boolean hasArg(String name) {
-        return args.contains(name);
+    public boolean hasArgName(String name) {
+        return arg_names.contains(name);
     }
 }
 
