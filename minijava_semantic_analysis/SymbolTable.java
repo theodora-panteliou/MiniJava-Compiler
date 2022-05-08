@@ -5,13 +5,13 @@ import java.util.List;
 
 public class SymbolTable {
     Map<String, ClassInfo> class_dec = new HashMap<String, ClassInfo>(); /* class1 extends class2 */
-    Map<String, List<String>> field_in_class = new HashMap<String, List<String>>(); /* field(1) is declared in list of classes(2) */
+    Map<String, List<VariableInfo>> field_in_class = new HashMap<String, List<VariableInfo>>(); /* field(1) is declared in list of classes(2) */
     Map<String, Map<String, MethodInfo>> method_in_class = new HashMap<String, Map<String, MethodInfo>>(); /* method(1) is declared in list of classes(2) */
     Map<String, Map<String, Map<String, MethodInfo>>> var_in_method_in_class = new HashMap<String,Map<String,Map<String, MethodInfo>>>();; /* variable(1) is declared in method(2) */
 
-    public void addClassDeclaration(String ClassName) throws Exception { 
+    public void addClassDeclaration(String ClassName) throws Exception {
         if (class_dec.containsKey(ClassName)){
-            throw new Exception("Class "+ ClassName + "already defined");
+            throw new Exception("Class <"+ ClassName + "> already defined");
         }
         else {
             ClassInfo new_class = new ClassInfo(ClassName, null);
@@ -27,7 +27,7 @@ public class SymbolTable {
             addClassDeclaration(ClassName);
         }
         else if (class_dec.containsKey(ClassName)){
-            throw new Exception("Class "+ ClassName + "already defined");
+            throw new Exception("Class <"+ ClassName + "> already defined");
         }
         else if (!class_dec.containsKey(SuperName)){
             throw new Exception("The superclass <"+ SuperName + "> that class <" + ClassName + "> inherits from is not defined");
@@ -38,15 +38,15 @@ public class SymbolTable {
         }
     }
 
-    public void addClassField(String FieldName, String ClassName) throws Exception { /* */
-        List<String> classes_list = field_in_class.get(FieldName);
+    public void addClassField(String FieldName, String ClassName, String Type) throws Exception { /* */
+        List<VariableInfo> classes_list = field_in_class.get(FieldName);
         if (classes_list == null){
-            classes_list = new LinkedList<String>();
+            classes_list = new LinkedList<VariableInfo>();
         }
-        else if (classes_list.contains(FieldName)){
+        else if (classes_list.contains(new VariableInfo(FieldName, ClassName))){
             throw new Exception("Field <" + FieldName + "> already declared in class <" + ClassName + ">");
         }
-        classes_list.add(ClassName);
+        classes_list.add(new VariableInfo(FieldName, Type, null, ClassName));
         field_in_class.put(FieldName, classes_list);
     }
 
@@ -75,7 +75,10 @@ public class SymbolTable {
         MethodInfo method_info = new MethodInfo(MethodName, ClassName, arg_names, arg_types, ReturnType);
         ClassInfo curr_class = class_dec.get(ClassName).getSuper();
         while (curr_class != null){
-            MethodInfo temp = curr_class.getMethod(MethodName);
+            System.out.println("In loop "+curr_class.name());
+            // MethodInfo temp = curr_class.getMethod(MethodName);
+            if (method_in_class.get(MethodName) == null ) break;
+            MethodInfo temp =  method_in_class.get(MethodName).get(curr_class.name()); //TODO maybe dont keep methods in classinfo nd just get them this way
             if (temp != null){
                 if (!method_info.equals(temp)){
                     throw new Exception("Invalid method override in method <" + MethodName + "> in class <" + ClassName + ">. Previous definition was in class <" + curr_class.name() +">.");
@@ -103,7 +106,7 @@ public class SymbolTable {
             Map<String, MethodInfo> second = first.get(MethodName);
             if (second !=  null){
                 /* at last by class */
-                MethodInfo third = second.get(ClassName);
+                MethodInfo third = second.get(ClassName); //TODO: maybe we dont need MethodInfo here, replace with String 
                 if (third != null){
                     throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> in class <" + ClassName + ">");
                 }
@@ -113,21 +116,36 @@ public class SymbolTable {
                         throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> as argument in class <" + ClassName + ">");
                     }
                     second.put(ClassName, method);
+                    first.put(MethodName, second);
+                    var_in_method_in_class.put(VariableName, first);
+                    System.out.println("here3 "+ VariableName + " " +ClassName+" "+ MethodName);
                 }
             }
             else { 
+                /* check if the variable name appears as argument */
+                if (method.hasArgName(VariableName)){ /* method from ethod_in_class map */
+                    throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> as argument in class <" + ClassName + ">");
+                }
                 /* create second and put */
                 second = new HashMap<String, MethodInfo>();
                 second.put(ClassName, method);
                 first.put(MethodName, second);
+                var_in_method_in_class.put(VariableName, first);
+                System.out.println("here2 "+ VariableName + " " +ClassName+" "+ MethodName);
             }
         }
         else {
+            /* check if the variable name appears as argument */
+            if (method.hasArgName(VariableName)){ /* method from ethod_in_class map */
+                throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> as argument in class <" + ClassName + ">");
+            }
             /* create first and second and put */
             first = new HashMap<String, Map<String, MethodInfo>>();
             Map<String, MethodInfo> second = new HashMap<String, MethodInfo>();
             second.put(ClassName, method);
             first.put(MethodName, second);
+            var_in_method_in_class.put(VariableName, first);
+            System.out.println("here " + VariableName + " " + ClassName + " " + MethodName);
         }
     
     }
@@ -144,8 +162,8 @@ class MethodInfo { /* holds all information for the method */
     MethodInfo(String MethodName, String ClassName, List<String> arg_names, List<String> arg_types, String ReturnType){ /* proper initialization */
         this.ClassName = ClassName;
         this.MethodName = MethodName;
-        this.arg_names = arg_names;
-        this.arg_types = arg_types;
+        this.arg_names = new LinkedList<>(arg_names); /* copy */
+        this.arg_types = new LinkedList<>(arg_types); /* copy */
         this.ReturnType = ReturnType;
     }
 
@@ -177,8 +195,13 @@ class ClassInfo {
     ClassInfo superclass;
     Map<String, MethodInfo> methods = new HashMap<String, MethodInfo>();
 
+    ClassInfo(String name){
+        this.name = name;
+    }
+
     ClassInfo(String name, ClassInfo superclass){
         this.name = name;
+        this.superclass = superclass;
     }
 
     public void addMethod(String name,MethodInfo method){
@@ -195,5 +218,56 @@ class ClassInfo {
 
     public String name(){
         return name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        /* source: https://www.baeldung.com/java-comparing-objects */
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ClassInfo that = (ClassInfo) o;
+        
+        return name.equals(that.name);
+    }
+}
+
+class VariableInfo {
+    String name;
+    String type;
+    String method;
+    String classname;
+
+    VariableInfo(String name, String ClassName){ /* for comparisons only */
+        this.name = name;
+        this.classname = ClassName;
+    }
+
+    VariableInfo(String name, String type, String method, String classname){
+        this.name = name;
+        this.type = type;
+        this.method = method;
+        this.classname = classname;
+    }
+
+    public String getType(){
+        return type;
+    }
+
+    public String getMethod(){
+        return method;
+    }
+
+    public String getClassname(){
+        return method;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        /* source: https://www.baeldung.com/java-comparing-objects */
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        VariableInfo that = (VariableInfo) o;
+        
+        return name.equals(that.name) && classname.equals(that.classname);
     }
 }
