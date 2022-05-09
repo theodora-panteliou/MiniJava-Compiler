@@ -5,7 +5,7 @@ import java.util.List;
 
 public class SymbolTable {
     Map<String, ClassInfo> class_dec = new HashMap<String, ClassInfo>(); /* class1 extends class2 */
-    Map<String, List<VariableInfo>> field_in_class = new HashMap<String, List<VariableInfo>>(); /* field(1) is declared in list of classes(2) */
+    Map<String, Map<String, VariableInfo>> field_in_class = new HashMap<String, Map<String, VariableInfo>>(); /* field(1) is declared in list of classes(2) */
     Map<String, Map<String, MethodInfo>> method_in_class = new HashMap<String, Map<String, MethodInfo>>(); /* method(1) is declared in list of classes(2) */
     Map<String, Map<String, Map<String, MethodInfo>>> var_in_method_in_class = new HashMap<String,Map<String,Map<String, MethodInfo>>>();; /* variable(1) is declared in method(2) */
 
@@ -39,15 +39,16 @@ public class SymbolTable {
     }
 
     public void addClassField(String FieldName, String ClassName, String Type) throws Exception { /* */
-        List<VariableInfo> classes_list = field_in_class.get(FieldName);
-        if (classes_list == null){
-            classes_list = new LinkedList<VariableInfo>();
+        Map<String, VariableInfo> classes_map = field_in_class.get(FieldName);
+        if (classes_map == null){
+            classes_map = new HashMap<String, VariableInfo>();
         }
-        else if (classes_list.contains(new VariableInfo(FieldName, ClassName))){
+        else if (classes_map.containsKey(ClassName)){
             throw new Exception("Field <" + FieldName + "> already declared in class <" + ClassName + ">");
         }
-        classes_list.add(new VariableInfo(FieldName, Type, null, ClassName));
-        field_in_class.put(FieldName, classes_list);
+        VariableInfo new_var = new VariableInfo(FieldName, Type, null, ClassName);
+        classes_map.put(ClassName, new_var);
+        field_in_class.put(FieldName, classes_map);
     }
 
     public void addClassMethod(String MethodName, String ClassName, List<String> arg_names, List<String> arg_types, String ReturnType) throws Exception {
