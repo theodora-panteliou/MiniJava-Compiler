@@ -15,6 +15,52 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
     List<String> helperListArgs = new LinkedList<String>();
     List<String> helperListTypes = new LinkedList<String>();
     
+
+    /**
+    * f0 -> "class"
+    * f1 -> Identifier()
+    * f2 -> "{"
+    * f3 -> "public"
+    * f4 -> "static"
+    * f5 -> "void"
+    * f6 -> "main"
+    * f7 -> "("
+    * f8 -> "String"
+    * f9 -> "["
+    * f10 -> "]"
+    * f11 -> Identifier()
+    * f12 -> ")"
+    * f13 -> "{"
+    * f14 -> ( VarDeclaration() )*
+    * f15 -> ( Statement() )*
+    * f16 -> "}"
+    * f17 -> "}"
+    */
+    public String visit(MainClass n, Void argu) throws Exception {
+        String _ret=null;
+        String classname = n.f1.accept(this, argu);
+        currClass = classname;
+        symbolTable.addClassDeclaration(classname);
+        String methodname = n.f6.toString();
+        currMethod = methodname;
+        
+        List<String> args = new LinkedList<String>();
+        args.add(n.f11.accept(this, argu));
+        
+        List<String> types = new LinkedList<String>();
+        args.add(n.f11.accept(this, argu));
+        
+        symbolTable.addClassMethod(methodname, classname, args, types, "static void"); /* return type doesn't really matter, 
+                                                        static method cannot be overriden so set "static void" so it doen't match with 
+                                                        the subclasses and always return error when a program overrides it */
+        n.f14.accept(this, argu);
+        n.f15.accept(this, argu);
+
+        currMethod = null;
+        currClass = null;
+        return _ret;
+    }
+
     /**
     * f0 -> "class"
     * f1 -> Identifier()
