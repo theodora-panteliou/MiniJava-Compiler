@@ -1,5 +1,5 @@
 import syntaxtree.*;
-import visitor.*;
+import visitor.GJDepthFirst;
 import java.util.List;
 import java.util.LinkedList;
 // import java.io.FileInputStream;
@@ -37,7 +37,7 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
     * f17 -> "}"
     */
     public String visit(MainClass n, Void argu) throws Exception {
-        String _ret=null;
+
         String classname = n.f1.accept(this, argu);
         currClass = classname;
         symbolTable.addClassDeclaration(classname);
@@ -58,7 +58,7 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
 
         currMethod = null;
         currClass = null;
-        return _ret;
+        return null;
     }
 
     /**
@@ -168,7 +168,7 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
             symbolTable.addClassField(name, currClass, type);
         }
         else {
-            symbolTable.addMethodVariable(name, currMethod, currClass);
+            symbolTable.addMethodVariable(name, currMethod, currClass, type);
         }
 
         return null;
