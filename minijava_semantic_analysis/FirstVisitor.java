@@ -29,7 +29,6 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
         String className = n.f1.accept(this, argu);
         currClass = className;
         symbolTable.addClassDeclaration(className);
-        System.out.println("add class dec "+ className);
 
         n.f3.accept(this, argu);
         n.f4.accept(this, argu);
@@ -155,28 +154,60 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
     }
 
     /**
-    * f0 -> "true"
+    * f0 -> "boolean"
+    * f1 -> "["
+    * f2 -> "]"
     */
-    @Override
-    public String visit(TrueLiteral n, Void argu) throws Exception {
-        return "boolean";
+    public String visit(BooleanArrayType n, Void argu) throws Exception {
+        return "boolean[]";
     }
 
     /**
-     * f0 -> "false"
+    * f0 -> "int"
+    * f1 -> "["
+    * f2 -> "]"
     */
-    @Override
-    public String visit(FalseLiteral n, Void argu) throws Exception {
-        return "boolean";
+    public String visit(IntegerArrayType n, Void argu) throws Exception {
+        return "int[]";
     }
-    
+
     /**
-    * f0 -> <INTEGER_LITERAL>
+    * f0 -> "boolean"
     */
-    @Override
-    public String visit(IntegerLiteral n, Void argu) throws Exception {
-        // System.out.println("I am int: "+n.f0.toString());
-        return "int";
+    public String visit(BooleanType n, Void argu) throws Exception {
+        return n.f0.toString();
     }
+
+    /**
+     * f0 -> "int"
+    */
+    public String visit(IntegerType n, Void argu) throws Exception {
+        return n.f0.toString();
+    }
+
+    // /**
+    // * f0 -> "true"
+    // */
+    // @Override
+    // public String visit(TrueLiteral n, Void argu) throws Exception {
+    //     return "boolean";
+    // }
+
+    // /**
+    //  * f0 -> "false"
+    // */
+    // @Override
+    // public String visit(FalseLiteral n, Void argu) throws Exception {
+    //     return "boolean";
+    // }
+    
+    // /**
+    // * f0 -> <INTEGER_LITERAL>
+    // */
+    // @Override
+    // public String visit(IntegerLiteral n, Void argu) throws Exception {
+    //     // System.out.println("I am int: "+n.f0.toString());
+    //     return "int";
+    // }
 
 }

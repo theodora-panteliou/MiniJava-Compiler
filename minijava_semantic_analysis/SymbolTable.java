@@ -75,7 +75,6 @@ public class SymbolTable {
         MethodInfo method_info = new MethodInfo(MethodName, ClassName, arg_names, arg_types, ReturnType);
         ClassInfo curr_class = class_dec.get(ClassName).getSuper();
         while (curr_class != null){
-            System.out.println("In loop "+curr_class.name());
             // MethodInfo temp = curr_class.getMethod(MethodName);
             if (method_in_class.get(MethodName) == null ) break;
             MethodInfo temp =  method_in_class.get(MethodName).get(curr_class.name()); //TODO maybe dont keep methods in classinfo nd just get them this way
@@ -178,9 +177,8 @@ class MethodInfo { /* holds all information for the method */
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MethodInfo that = (MethodInfo) o;
-        
+
         return MethodName.equals(that.MethodName) &&
-        ClassName.equals(that.ClassName) &&
         ReturnType.equals(that.ReturnType) &&
         arg_types.equals(that.arg_types); /* 2 methods are considered equals based on types */
     }
