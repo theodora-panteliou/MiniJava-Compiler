@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Iterator;
 
 public class SymbolTable {
-    Map<String, ClassInfo> class_dec = new HashMap<String, ClassInfo>(); /* class1 extends class2 */
+    Map<String, ClassInfo> class_dec = new HashMap<String, ClassInfo>(); /* return ClassInfo by class name */
     Map<String, Map<String, VariableInfo>> field_in_class = new HashMap<String, Map<String, VariableInfo>>(); /* field(1) is declared in list of classes(2) */
     Map<String, Map<String, MethodInfo>> method_in_class = new HashMap<String, Map<String, MethodInfo>>(); /* method(1) is declared in list of classes(2) */
     Map<String, Map<String, Map<String, VariableInfo>>> var_in_method_in_class = new HashMap<String,Map<String,Map<String, VariableInfo>>>();; /* variable(1) is declared in method(2) */
@@ -156,11 +156,37 @@ public class SymbolTable {
     }
 
     /* find methods */
-    String find_variable_in_scope(String VariableName, String MethodName, String ClassName){
+
+    /* returns type */
+    String find_variable_in_scope(String VariableName, String MethodName, String ClassName) throws Exception{
         /* variable in a scope (MethodName, ClassName) can be declared inside the Method, as argument 
         to the Method, as Field in Class or a Field in superclass */
-        return null;
+
+        /* first search the nearest scope: variable or argument in a method */
+        VariableInfo variable = var_in_method_in_class.get(ClassName).get(MethodName).get(VariableName);
+        if (variable != null) return variable.getType();
+
+        /* search at class or superclasses */
+        /* get the map of classes that belongs to our variable name. In that map we will search for the closest superclass each time */
+        Map<String, VariableInfo> map_of_classes = field_in_class.get(VariableName);
+        VariableInfo temp;
+        ClassInfo curr_class = class_dec.get(VariableName);
+        while (curr_class != null){
+            temp = map_of_classes.get(curr_class.name());
+            
+            if (temp!=null) {
+                return temp.getType();
+            }
+            
+            curr_class = curr_class.getSuper();
+        }
+
+        throw new Exception("find_variable_in_scope: Variable not found. Should never reach here.");
     }
+
+    // String find_class_type(String ClassName){
+    //     return class_dec.get(ClassName).nam
+    // }
 
 }
 

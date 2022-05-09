@@ -7,41 +7,48 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        if(args.length != 1){
+        if(args.length < 1){
             System.err.println("Usage: java Main <inputFile>");
             System.exit(1);
         }
 
 
-
         FileInputStream fis = null;
-        try{
-            fis = new FileInputStream(args[0]);
-            MiniJavaParser parser = new MiniJavaParser(fis);
-
-            Goal root = parser.Goal();
-
-            System.err.println("Program parsed successfully.");
-
-            FirstVisitor eval = new FirstVisitor();
-            root.accept(eval, null);
-        }
-        catch(ParseException ex){
-            System.out.println(ex.getMessage());
-        }
-        catch(FileNotFoundException ex){
-            System.err.println(ex.getMessage());
-        }
-        catch(Exception ex){
-            System.err.println(ex.getMessage());
-        }
-        finally{
+        for (int i=0; i<args.length; i++) {
+            System.out.println("***File: " + args[i]+"***");
             try{
-                if(fis != null) fis.close();
+                fis = new FileInputStream(args[i]);
+                MiniJavaParser parser = new MiniJavaParser(fis);
+
+                Goal root = parser.Goal();
+
+                System.err.println("Program parsed successfully.");
+
+                FirstVisitor eval = new FirstVisitor();
+                root.accept(eval, null);
+
+                // SecondVisitor eval2 = new SecondVisitor(eval.symbolTable);
+                // root.accept(eval2, null);
+                System.err.println("Program is semantically correct.");
             }
-            catch(IOException ex){
+            catch(ParseException ex){
+                System.out.println(ex.getMessage());
+            }
+            catch(FileNotFoundException ex){
                 System.err.println(ex.getMessage());
             }
+            catch(Exception ex){
+                System.err.println(ex.getMessage());
+            }
+            finally{
+                try{
+                    if(fis != null) fis.close();
+                }
+                catch(IOException ex){
+                    System.err.println(ex.getMessage());
+                }
+            }
+            System.out.println();
         }
     }
 }
