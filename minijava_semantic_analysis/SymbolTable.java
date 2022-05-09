@@ -5,11 +5,20 @@ import java.util.List;
 import java.util.Iterator;
 
 public class SymbolTable {
-    Map<String, ClassInfo> class_dec = new HashMap<String, ClassInfo>(); /* return ClassInfo by class name */
-    Map<String, Map<String, VariableInfo>> field_in_class = new HashMap<String, Map<String, VariableInfo>>(); /* field(1) is declared in list of classes(2) */
-    Map<String, Map<String, MethodInfo>> method_in_class = new HashMap<String, Map<String, MethodInfo>>(); /* method(1) is declared in list of classes(2) */
-    Map<String, Map<String, Map<String, VariableInfo>>> var_in_method_in_class = new HashMap<String,Map<String,Map<String, VariableInfo>>>();; /* variable(1) is declared in method(2) */
+    
+    /* class returns ClassInfo */
+    Map<String, ClassInfo> class_dec = new HashMap<String, ClassInfo>();
+    
+    /* field->class returns VariableInfo  */
+    Map<String, Map<String, VariableInfo>> field_in_class = new HashMap<String, Map<String, VariableInfo>>();
+    
+    /* method->class returns MethodInfo */
+    Map<String, Map<String, MethodInfo>> method_in_class = new HashMap<String, Map<String, MethodInfo>>();
+    
+    /* variable->method->class returns VariableInfo*/ 
+    Map<String, Map<String, Map<String, VariableInfo>>> var_in_method_in_class = new HashMap<String,Map<String,Map<String, VariableInfo>>>();
 
+    
     public void addClassDeclaration(String ClassName) throws Exception {
         if (class_dec.containsKey(ClassName)){
             throw new Exception("Class <"+ ClassName + "> already defined");
@@ -114,7 +123,7 @@ public class SymbolTable {
             Map<String, VariableInfo> second = first.get(MethodName);
             if (second !=  null){
                 /* at last by class */
-                VariableInfo third = second.get(ClassName); //TODO: maybe we dont need MethodInfo here, replace with VariableInfo 
+                VariableInfo third = second.get(ClassName);
                 if (third != null){
                     throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> in class <" + ClassName + ">");
                 }
@@ -123,6 +132,7 @@ public class SymbolTable {
                     // if (method.hasArgName(VariableName)){ /* method from ethod_in_class map */
                     //     throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> as argument in class <" + ClassName + ">");
                     // }
+                    // System.out.println("addMethodVariable: Adding variable :" + VariableName);
                     second.put(ClassName, to_insert);
                     first.put(MethodName, second);
                     var_in_method_in_class.put(VariableName, first);
@@ -133,6 +143,7 @@ public class SymbolTable {
                 // if (method.hasArgName(VariableName)){ /* method from ethod_in_class map */
                 //     throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> as argument in class <" + ClassName + ">");
                 // }
+                // System.out.println("addMethodVariable: Adding variable :" + VariableName);
                 /* create second and put */
                 second = new HashMap<String, VariableInfo>();
                 second.put(ClassName, to_insert);
@@ -145,6 +156,7 @@ public class SymbolTable {
             // if (method.hasArgName(VariableName)){ /* method from ethod_in_class map */
             //     throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> as argument in class <" + ClassName + ">");
             // }
+            // System.out.println("addMethodVariable: Adding variable :" + VariableName);
             /* create first and second and put */
             first = new HashMap<String, Map<String, VariableInfo>>();
             Map<String, VariableInfo> second = new HashMap<String, VariableInfo>();
@@ -157,18 +169,28 @@ public class SymbolTable {
 
     /* find methods */
 
-    /* returns type */
-    String find_variable_in_scope(String VariableName, String MethodName, String ClassName) throws Exception{
+    /* returns type of an identifier */
+    String find_type_in_scope(String VariableName, String MethodName, String ClassName) throws Exception{
+        
         /* variable in a scope (MethodName, ClassName) can be declared inside the Method, as argument 
         to the Method, as Field in Class or a Field in superclass */
-
+        // System.out.println("find variable in scope searching for "+VariableName+MethodName+ClassName);
         /* first search the nearest scope: variable or argument in a method */
-        VariableInfo variable = var_in_method_in_class.get(ClassName).get(MethodName).get(VariableName);
-        if (variable != null) return variable.getType();
+        VariableInfo variable = null;
+        Map<String, Map<String, VariableInfo>> by_var = var_in_method_in_class.get(VariableName);
+        if (by_var != null) {
+            Map<String, VariableInfo> by_method = by_var.get(MethodName);
+            if (by_method!=null) {
+                variable = by_method.get(ClassName);
+                if (variable != null) return variable.getType();
+            }
+        }
 
         /* search at class or superclasses */
         /* get the map of classes that belongs to our variable name. In that map we will search for the closest superclass each time */
         Map<String, VariableInfo> map_of_classes = field_in_class.get(VariableName);
+        if (map_of_classes == null) return null; /* case variable was not found */
+        
         VariableInfo temp;
         ClassInfo curr_class = class_dec.get(VariableName);
         while (curr_class != null){
@@ -181,12 +203,10 @@ public class SymbolTable {
             curr_class = curr_class.getSuper();
         }
 
-        throw new Exception("find_variable_in_scope: Variable not found. Should never reach here.");
-    }
 
-    // String find_class_type(String ClassName){
-    //     return class_dec.get(ClassName).nam
-    // }
+
+        return null; /* case variable was not found */
+    }
 
 }
 

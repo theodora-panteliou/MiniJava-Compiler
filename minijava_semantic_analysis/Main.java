@@ -26,9 +26,10 @@ public class Main {
 
                 FirstVisitor eval = new FirstVisitor();
                 root.accept(eval, null);
+                System.err.println("FirstVisitor done.");
 
-                // SecondVisitor eval2 = new SecondVisitor(eval.symbolTable);
-                // root.accept(eval2, null);
+                SecondVisitor eval2 = new SecondVisitor(eval.symbolTable);
+                root.accept(eval2, null);
                 System.err.println("Program is semantically correct.");
             }
             catch(ParseException ex){
