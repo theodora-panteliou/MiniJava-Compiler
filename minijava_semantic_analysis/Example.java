@@ -3,11 +3,12 @@ class Example {
     }
 }
 
-class A {
+class A extends Example{
     int i;
     A a;
-
-    public int foo(int i, int j) { return i+j; }
+    
+    public int foo(int i, int j) { int k; int l; return i+j; }
+    public boolean boo(int i, int j) {  return true; }
     public int bar(){ return 1; }
 }
 
