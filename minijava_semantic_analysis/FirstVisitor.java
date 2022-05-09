@@ -48,7 +48,7 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
         args.add(n.f11.accept(this, argu));
         
         List<String> types = new LinkedList<String>();
-        args.add(n.f11.accept(this, argu));
+        args.add("String[]");
         
         symbolTable.addClassMethod(methodname, classname, args, types, "static void"); /* return type doesn't really matter, 
                                                         static method cannot be overriden so set "static void" so it doen't match with 
