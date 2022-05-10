@@ -192,7 +192,7 @@ public class SymbolTable {
         if (map_of_classes == null) return null; /* case variable was not found */
         
         VariableInfo temp;
-        ClassInfo curr_class = class_dec.get(VariableName);
+        ClassInfo curr_class = class_dec.get(ClassName);
         while (curr_class != null){
             temp = map_of_classes.get(curr_class.name());
             
@@ -206,6 +206,32 @@ public class SymbolTable {
 
 
         return null; /* case variable was not found */
+    }
+
+    public String find_method_type(String MethodName, String ClassName) throws Exception{
+        Map<String, MethodInfo> by_method = method_in_class.get(MethodName);
+        if (by_method==null) 
+            throw new Exception("Reference to undefined method <" + MethodName + ">");
+        // MethodInfo method = by_method.get(ClassName);
+                
+        MethodInfo temp;
+        ClassInfo curr_class = class_dec.get(ClassName);
+        while (curr_class != null){
+            temp = by_method.get(curr_class.name());
+            
+            if (temp!=null) {
+                return temp.getReturnType();
+            }
+            
+            curr_class = curr_class.getSuper();
+        }
+
+        /* if not found */
+        throw new Exception("Method <"+MethodName+"> doesn't exist for type <"+ ClassName + ">");
+    }
+
+    public boolean class_exists(String ClassName){
+        return class_dec.containsKey(ClassName);
     }
 
 }
@@ -244,6 +270,10 @@ class MethodInfo { /* holds all information for the method */
 
     public boolean hasArgName(String name) {
         return arg_names.contains(name);
+    }
+
+    public String getReturnType(){
+        return ReturnType;
     }
 }
 
