@@ -224,7 +224,7 @@ public class SymbolTable {
             
             if (temp!=null) {
                 /* check if method parameter expressions are the correct type */
-                if (temp.check_types(parameters) == false) 
+                if (temp.check_types(parameters, this) == false) 
                     throw new Exception("Parameter types not compatible with argument types in method "+ClassName+"."+MethodName+". Method is inherited from class <" + curr_class.name() + ">.");
                 return temp.getReturnType();
             }
@@ -295,8 +295,18 @@ class MethodInfo { /* holds all information for the method */
         return ReturnType;
     }
 
-    public boolean check_types(List<String> parameters_types) {
-        return arg_types.equals(parameters_types);
+    public boolean check_types(List<String> parameters_types, SymbolTable sTable) {
+        Iterator<String> parameters = parameters_types.iterator();
+        Iterator<String> args = arg_types.iterator();
+
+        while (parameters.hasNext() && args.hasNext()) {
+            String arg = args.next();
+            String param = parameters.next();
+            if (!arg.equals(param)) /* for basic types */
+                if (!sTable.is_superclass(arg, param)) return false;
+        }
+
+        return true;
     }
 }
 
