@@ -1,11 +1,14 @@
 import visitor.GJDepthFirst;
 import syntaxtree.*;
+import java.util.LinkedList;
+import java.util.List;
 
 public class SecondVisitor extends GJDepthFirst<String,Void>{
     SymbolTable symbolTable;
     String currClass = null;
     String currMethod = null;
     Boolean method_statements = false;
+    List<String> expression_list = new LinkedList<String>();
 
     SecondVisitor(SymbolTable st){
         this.symbolTable = st;
@@ -37,7 +40,9 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
         currMethod = n.f6.toString();
        
         n.f14.accept(this, argu);
+        method_statements = true;
         n.f15.accept(this, argu);
+        method_statements = false;
 
         currMethod = null;
         currClass = null;
@@ -151,7 +156,7 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
         /* check the scope. If we are inside a funtion below declarations we need to return the type */
         if (method_statements == true) {
             String type = symbolTable.find_type_in_scope(n.f0.toString(), currMethod, currClass);
-            System.out.println("found type "+type+" for variable "+n.f0.toString()+ " in method " + currMethod + " in class " +currClass);
+            // System.out.println("found type "+type+" for variable "+n.f0.toString()+ " in method " + currMethod + " in class " +currClass);
             if (type != null) return type;
         }
         return n.f0.toString();
@@ -362,14 +367,17 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f2 -> Expression()
     * f3 -> ";"
     */
-    public String visit(AssignmentStatement n, Void argu) throws Exception { //TODO: check classes with subclasses
+    public String visit(AssignmentStatement n, Void argu) throws Exception {
         String id_type = n.f0.accept(this, argu);
         String expr_type = n.f2.accept(this, argu);
 
-        if (!id_type.equals(expr_type))
-            throw new Exception("Identifier type different from expression type in assignment statement.");
-
-        return null;
+        if (id_type.equals(expr_type))
+            return null; /* case class_type = class_type and int=int, boolean=boolean, int[]=int[],  boolean[]=boolean[] */
+        else if (symbolTable.is_superclass(id_type, expr_type))
+            return null; 
+        else
+            throw new Exception("Invalid types in assignment operator: <"+id_type+"> = <"+expr_type+">.");
+        
     }
 
     /**
@@ -381,7 +389,7 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f5 -> Expression()
     * f6 -> ";"
     */
-    public String visit(ArrayAssignmentStatement n, Void argu) throws Exception { //TODO: check classes with subclasses
+    public String visit(ArrayAssignmentStatement n, Void argu) throws Exception {
         String id_type = n.f0.accept(this, argu);
         String index_type = n.f2.accept(this, argu);
         String expr_type = n.f5.accept(this, argu);
@@ -396,7 +404,7 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     }
 
     /**
-     * f0 -> "if"
+    * f0 -> "if"
     * f1 -> "("
     * f2 -> Expression()
     * f3 -> ")"
@@ -461,15 +469,36 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     public String visit(MessageSend n, Void argu) throws Exception {
         String type = n.f0.accept(this, argu);
         // String type = symbolTable.find_type_in_scope(class_object, currMethod, currClass);
-        System.out.println("------------ printing type "+type);
+        // System.out.println("------------ printing type "+type);
         String method_name = n.f2.accept(this, argu);
-        String return_type = symbolTable.find_method_type(method_name, type);
-        System.out.println("Return type: "+ return_type);
+        // System.out.println("Return type: "+ return_type);
 
         n.f4.accept(this, argu);
+        String return_type = symbolTable.find_method_type(method_name, type, expression_list);
 
+        expression_list.clear();
         return return_type;
     }
+
+    /**
+    * f0 -> Expression()
+    * f1 -> ExpressionTail()
+    */
+   public String visit(ExpressionList n, Void argu) throws Exception {
+        expression_list.add(n.f0.accept(this, argu));
+        n.f1.accept(this, argu);
+        return null;
+    }
+
+    /**
+     * f0 -> ","
+    * f1 -> Expression()
+    */
+    public String visit(ExpressionTerm n, Void argu) throws Exception {
+        expression_list.add(n.f1.accept(this, argu));
+        return null;
+    }
+
 
     /**
     * f0 -> <INTEGER_LITERAL>

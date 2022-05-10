@@ -200,6 +200,35 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
     }
 
     /**
+    * f0 -> Expression()
+    * f1 -> ExpressionTail()
+    */
+   public String visit(ExpressionList n, Void argu) throws Exception {
+        String _ret=null;
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+        return _ret;
+    }
+
+    /**
+     * f0 -> ( ExpressionTerm() )*
+    */
+    public String visit(ExpressionTail n, Void argu) throws Exception {
+        return n.f0.accept(this, argu);
+    }
+
+    /**
+     * f0 -> ","
+    * f1 -> Expression()
+    */
+    public String visit(ExpressionTerm n, Void argu) throws Exception {
+        String _ret=null;
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+        return _ret;
+    }
+
+    /**
     * f0 -> "boolean"
     * f1 -> "["
     * f2 -> "]"
