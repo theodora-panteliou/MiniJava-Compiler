@@ -3,7 +3,7 @@ class Example {
     }
 }
 
-class A extends Example{
+class A{
     int i;
     A a;
     

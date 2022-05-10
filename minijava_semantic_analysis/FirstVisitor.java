@@ -15,7 +15,7 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
     List<String> helperListArgs = new LinkedList<String>();
     List<String> helperListTypes = new LinkedList<String>();
     
-
+    public Offset offset = new Offset();
     /**
     * f0 -> "class"
     * f1 -> Identifier()
@@ -75,6 +75,7 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
         String className = n.f1.accept(this, argu);
         currClass = className;
         symbolTable.addClassDeclaration(className);
+        offset.add_class(className, null);
 
         n.f3.accept(this, argu);
         n.f4.accept(this, argu);
@@ -99,6 +100,7 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
         currClass = className;
         String superName = n.f3.accept(this, argu);
         symbolTable.addClassDeclaration(className, superName);
+        offset.add_class(className, superName);
 
         n.f5.accept(this, argu);
         n.f6.accept(this, argu);
@@ -126,6 +128,7 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
         String retType = n.f1.accept(this, argu);
         String methodName = n.f2.accept(this, argu);
         currMethod = methodName;
+        offset.add_method(methodName);
 
         n.f4.accept(this, argu);
         
@@ -166,6 +169,7 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
         }
         if (currMethod==null){
             symbolTable.addClassField(name, currClass, type);
+            offset.add_field(name, type);
         }
         else {
             symbolTable.addMethodVariable(name, currMethod, currClass, type);

@@ -31,6 +31,7 @@ public class Main {
                 SecondVisitor eval2 = new SecondVisitor(eval.symbolTable);
                 root.accept(eval2, null);
                 System.err.println("Program is semantically correct.");
+                eval.offset.print();
             }
             catch(ParseException ex){
                 System.out.println(ex.getMessage());
