@@ -296,6 +296,8 @@ class MethodInfo { /* holds all information for the method */
     }
 
     public boolean check_types(List<String> parameters_types, SymbolTable sTable) {
+        if (parameters_types.size()!=arg_types.size()) return false;
+
         Iterator<String> parameters = parameters_types.iterator();
         Iterator<String> args = arg_types.iterator();
 
