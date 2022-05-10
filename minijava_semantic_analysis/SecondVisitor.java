@@ -204,8 +204,10 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f3 -> ")"
     */
     public String visit(AllocationExpression n, Void argu) throws Exception {
-        String type = n.f1.accept(this, argu); /* TODO check that identifier exists */
-        return type;
+        /* TODO: Is this true? Identifier here is a class */
+        String id_name = n.f1.accept(this, argu);
+        if (!symbolTable.class_exists(id_name)) throw new Exception("Identifier <" + id_name + "> in new Identifier() expression doesn't exist");
+        return id_name;
     }
 
     /**
@@ -457,13 +459,15 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f5 -> ")"
     */
     public String visit(MessageSend n, Void argu) throws Exception {
-        n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
-        String return_type = n.f2.accept(this, argu);
+        String type = n.f0.accept(this, argu);
+        // String type = symbolTable.find_type_in_scope(class_object, currMethod, currClass);
+        System.out.println("------------ printing type "+type);
+        String method_name = n.f2.accept(this, argu);
+        String return_type = symbolTable.find_method_type(method_name, type);
         System.out.println("Return type: "+ return_type);
-        n.f3.accept(this, argu);
+
         n.f4.accept(this, argu);
-        n.f5.accept(this, argu);
+
         return return_type;
     }
 
