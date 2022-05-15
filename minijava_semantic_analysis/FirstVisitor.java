@@ -2,9 +2,6 @@ import syntaxtree.*;
 import visitor.GJDepthFirst;
 import java.util.List;
 import java.util.LinkedList;
-// import java.io.FileInputStream;
-// import java.io.FileNotFoundException;
-// import java.io.IOException;
 
 /* FisrtVisitor fills the symbol table (catches double decalaration errors, type mismatch for overriding) */
 
@@ -16,6 +13,7 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
     List<String> helperListTypes = new LinkedList<String>();
     
     public Offset offset = new Offset();
+   
     /**
     * f0 -> "class"
     * f1 -> Identifier()
@@ -85,7 +83,7 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
         return null;
     }
 
-       /**
+    /**
     * f0 -> "class"
     * f1 -> Identifier()
     * f2 -> "extends"
@@ -165,9 +163,6 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
         String type = n.f0.accept(this, argu);
         String name = n.f1.accept(this, argu);
         
-        if (currClass==null) {
-            throw new Exception("Variable <" + name + "> defined out of class scope");
-        }
         if (currMethod==null){
             symbolTable.addClassField(name, currClass, type);
             offset.add_field(name, type);
@@ -183,7 +178,6 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
     * f0 -> <IDENTIFIER>
     */
     public String visit(Identifier n, Void argu) throws Exception {
-        // System.out.println("Identifier returns: " + n.f0.toString());
         return n.f0.toString();
     }
     
@@ -200,7 +194,6 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
     */
     @Override
     public String visit(PrimaryExpression n, Void argu) throws Exception {
-        // System.out.println("PrimaryExpression:"+n.f0.accept(this, argu));
         return n.f0.accept(this, argu);
     }
 

@@ -69,9 +69,9 @@ public class SymbolTable {
         MethodInfo curr_method_info = new MethodInfo(MethodName, ClassName, arg_names, arg_types, ReturnType);
         ClassInfo curr_class = class_dec.get(ClassName).getSuper();
         while (curr_class != null){
-            // MethodInfo temp = curr_class.getMethod(MethodName);
+
             if (method_in_class.get(MethodName) == null ) break;
-            MethodInfo temp =  method_in_class.get(MethodName).get(curr_class.name()); //TODO maybe dont keep methods in classinfo nd just get them this way
+            MethodInfo temp =  method_in_class.get(MethodName).get(curr_class.name());
             if (temp != null){
                 if (!curr_method_info.equals(temp)){
                     throw new Exception("Invalid method override in method <" + MethodName + "> in class <" + ClassName + ">. Previous definition was in class <" + curr_class.name() +">.");
@@ -107,7 +107,7 @@ public class SymbolTable {
     }
 
     public void addMethodVariable(String VariableName, String MethodName, String ClassName, String Type) throws Exception { /* method should already exist in method_in_class map */
-        // System.out.println("assign variable "+VariableName+" in method " + MethodName + " in class " + ClassName + " with type " + Type);
+    
         VariableInfo to_insert = new VariableInfo(VariableName, Type, MethodName, ClassName);
 
         Map<String, MethodInfo> declared_methods_map_class = method_in_class.get(MethodName);
@@ -130,22 +130,12 @@ public class SymbolTable {
                     throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> in class <" + ClassName + ">");
                 }
                 else {
-                    // /* check if the variable name appears as argument */
-                    // if (method.hasArgName(VariableName)){ /* method from ethod_in_class map */
-                    //     throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> as argument in class <" + ClassName + ">");
-                    // }
-                    // System.out.println("addMethodVariable: Adding variable :" + VariableName);
                     second.put(ClassName, to_insert);
                     first.put(MethodName, second);
                     var_in_method_in_class.put(VariableName, first);
                 }
             }
             else { 
-                // /* check if the variable name appears as argument */
-                // if (method.hasArgName(VariableName)){ /* method from ethod_in_class map */
-                //     throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> as argument in class <" + ClassName + ">");
-                // }
-                // System.out.println("addMethodVariable: Adding variable :" + VariableName);
                 /* create second and put */
                 second = new HashMap<String, VariableInfo>();
                 second.put(ClassName, to_insert);
@@ -154,11 +144,6 @@ public class SymbolTable {
             }
         }
         else {
-            // /* check if the variable name appears as argument */
-            // if (method.hasArgName(VariableName)){ /* method from ethod_in_class map */
-            //     throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> as argument in class <" + ClassName + ">");
-            // }
-            // System.out.println("addMethodVariable: Adding variable :" + VariableName);
             /* create first and second and put */
             first = new HashMap<String, Map<String, VariableInfo>>();
             Map<String, VariableInfo> second = new HashMap<String, VariableInfo>();
@@ -176,7 +161,7 @@ public class SymbolTable {
         
         /* variable in a scope (MethodName, ClassName) can be declared inside the Method, as argument 
         to the Method, as Field in Class or a Field in superclass */
-        // System.out.println("find variable in scope searching for "+VariableName+" "+MethodName+" "+ClassName);
+
         /* first search the nearest scope: variable or argument in a method */
         VariableInfo variable = null;
         Map<String, Map<String, VariableInfo>> by_var = var_in_method_in_class.get(VariableName);
@@ -206,8 +191,6 @@ public class SymbolTable {
             curr_class = curr_class.getSuper();
         }
 
-
-
         return null; /* case variable was not found */
     }
 
@@ -215,7 +198,6 @@ public class SymbolTable {
         Map<String, MethodInfo> by_method = method_in_class.get(MethodName);
         if (by_method==null) 
             throw new Exception("Reference to undefined method <" + MethodName + ">");
-        // MethodInfo method = by_method.get(ClassName);
                 
         MethodInfo temp;
         ClassInfo curr_class = class_dec.get(ClassName);

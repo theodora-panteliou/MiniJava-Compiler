@@ -10,7 +10,7 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
     String currClass = null;
     String currMethod = null;
     Boolean method_statements = false;
-    ArrayList<List<String>> expression_list = new ArrayList<List<String>>();
+    ArrayList<List<String>> expression_list = new ArrayList<List<String>>(); /* expression_list works as a stack. It keeps the lists of expression lists for ExpressionList to allow nested ExpressionLists */
 
     SecondVisitor(SymbolTable st){
         this.symbolTable = st;
@@ -151,21 +151,21 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
     *       | BracketExpression()
     */
     public String visit(PrimaryExpression n, String argu) throws Exception {
-        return n.f0.accept(this, "PrimaryExpression");
+        return n.f0.accept(this, "PrimaryExpression"); /* pass this to Identifier so it knows that it should find the type */
     }
 
     /**
     * f0 -> <IDENTIFIER>
     */
-    public String visit(Identifier n, String argu) throws Exception { //TODO: maybe I can check the identifiers in higher levels
+    public String visit(Identifier n, String argu) throws Exception {
         /* check calling method. If we are inside a funtion below declarations we need to return the type */
         if (method_statements == true) {
             String type = symbolTable.find_type_in_scope(n.f0.toString(), currMethod, currClass);
-            // System.out.println("found type "+type+" for variable "+n.f0.toString()+ " in method " + currMethod + " in class " +currClass);
-            if (type != null && argu!="name") return type;
-            else if (argu=="AssignmentStatement" || argu=="PrimaryExpression")
+
+            if (type != null && argu!="name") return type; /* argument "name" means that we need to return the name and not the type */
+            else if (argu=="AssignmentStatement" || argu=="PrimaryExpression") /* these arguments mean that if we didn't find the type we throw error */
                 throw new Exception("Undefined variable <" + n.f0.toString() + "> in <"+argu+"> in method <" + currMethod + "> in class <" + currClass + ">.");
-            else if (argu=="Type")
+            else if (argu=="Type") /* these arguments mean that if we didn't find the type we throw error */
                 throw new Exception("Undefined type <" + n.f0.toString() + "> in method <" + currMethod + "> in class <" + currClass + ">.");
         }
         return n.f0.toString();
@@ -218,7 +218,7 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
     * f3 -> ")"
     */
     public String visit(AllocationExpression n, String argu) throws Exception {
-        /* TODO: Is this true? Identifier here is a class */
+        /* Identifier here is a class */
         String id_name = n.f1.accept(this, null);
         if (!symbolTable.class_exists(id_name)) throw new Exception("Identifier <" + id_name + "> in new Identifier() expression doesn't exist");
         return id_name;
@@ -377,7 +377,7 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
     * f3 -> ";"
     */
     public String visit(AssignmentStatement n, String argu) throws Exception {
-        String id_type = n.f0.accept(this, "AssignmentStatement");
+        String id_type = n.f0.accept(this, "AssignmentStatement"); /* pass AssignmentStatement to Identifier so it knows that we need to find the type, and if not throw error */
         String expr_type = n.f2.accept(this, null);
 
         if (id_type.equals(expr_type))
@@ -422,14 +422,13 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
     * f6 -> Statement()
     */
     public String visit(IfStatement n, String argu) throws Exception {
-        n.f0.accept(this, null);
-        n.f1.accept(this, null);
+
         String expr_type = n.f2.accept(this, null);
         if (!expr_type.equals("boolean"))
             throw new Exception("If condition is not boolean.");
-        n.f3.accept(this, null);
+
         n.f4.accept(this, null);
-        n.f5.accept(this, null);
+
         n.f6.accept(this, null);
         return null;
     }
@@ -442,12 +441,11 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
     * f4 -> Statement()
     */
     public String visit(WhileStatement n, String argu) throws Exception {
-        n.f0.accept(this, null);
-        n.f1.accept(this, null);
+
         String expr_type = n.f2.accept(this, null);
         if (!expr_type.equals("boolean"))
             throw new Exception("While condition is not boolean.");
-        n.f3.accept(this, null);
+
         n.f4.accept(this, null);
         return null;
     }
@@ -477,18 +475,17 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
     */
     public String visit(MessageSend n, String argu) throws Exception {
         String type = n.f0.accept(this, null);
-        // String type = symbolTable.find_type_in_scope(class_object, currMethod, currClass);
-        // System.out.println("------------ printing type "+type);
-        String method_name = n.f2.accept(this, "name");
-        // System.out.println("Return type: "+ return_type);
+
+        String method_name = n.f2.accept(this, "name"); /* pass this to Identifier so it knows we need the name and not the type */
 
         n.f4.accept(this, null);
 
+        /* expression_list works as a stack */
         List<String> curr_parameters = null;
-        if (expression_list.size()-1 <0){
+        if (expression_list.size()-1 <0){ /* if expression list is empty pass an empty list to find_method_type */
             curr_parameters = new LinkedList<String>();
         }
-        else {
+        else { /* else pop the last expression list */
             curr_parameters = expression_list.remove(expression_list.size()-1);
         }
 
@@ -506,6 +503,7 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
         
         String res =n.f0.accept(this, null);
 
+        /* initialize new level of expression list */
         new_list.add(res);
         expression_list.add(new_list);
         
@@ -518,6 +516,8 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
     * f1 -> Expression()
     */
     public String visit(ExpressionTerm n, String argu) throws Exception {
+
+        /* add to last level */
         List<String> insert_list = expression_list.get(expression_list.size()-1);
         
         String res =n.f1.accept(this, null);
@@ -587,6 +587,6 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
     *       | Identifier()
     */
     public String visit(Type n, String argu) throws Exception { /* in case of type Identifier */
-        return n.f0.accept(this, "Type");
+        return n.f0.accept(this, "Type"); /* pass Type to Identifier so it knows that it needs to evaluate the type or else throw error */
     }
 }
