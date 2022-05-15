@@ -11,10 +11,15 @@ public class Offset {
     int next_method_offset = 0;
 
     String curr_class = null;
+    String main_class = null;
 
     Map<String, String> inherit = new HashMap<String, String>();
     Map<String, Integer> last_field_offset = new HashMap<String, Integer>();  
     Map<String, Integer> last_method_offset = new HashMap<String, Integer>();  
+
+    public void add_main(String name){
+        main_class = name;
+    }
 
     public void add_class(String ClassName, String SuperClassName){
         LinkedHashMap<String, Integer> fields_map = new LinkedHashMap<>();
@@ -25,7 +30,7 @@ public class Offset {
         
         curr_class = ClassName;
 
-        if (SuperClassName!=null) { /* Start offset after the previous class */
+        if (SuperClassName!=null && !SuperClassName.equals(main_class)) { /* Start offset after the previous class */
             next_field_offset = last_field_offset.get(SuperClassName);
             next_method_offset = last_method_offset.get(SuperClassName);
             inherit.put(ClassName, SuperClassName);
