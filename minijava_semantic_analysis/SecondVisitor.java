@@ -1,5 +1,7 @@
 import visitor.GJDepthFirst;
 import syntaxtree.*;
+
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -8,7 +10,7 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
     String currClass = null;
     String currMethod = null;
     Boolean method_statements = false;
-    List<String> expression_list = new LinkedList<String>();
+    ArrayList<List<String>> expression_list = new ArrayList<List<String>>();
 
     SecondVisitor(SymbolTable st){
         this.symbolTable = st;
@@ -157,7 +159,7 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
         if (method_statements == true) {
             String type = symbolTable.find_type_in_scope(n.f0.toString(), currMethod, currClass);
             // System.out.println("found type "+type+" for variable "+n.f0.toString()+ " in method " + currMethod + " in class " +currClass);
-            if (type != null) return type;
+            if (type != null && argu!="name") return type;
             else if (argu=="AssignmentStatement" || argu=="PrimaryExpression")
                 throw new Exception("Undefined variable <" + n.f0.toString() + "> in <"+argu+"> in method <" + currMethod + "> in class <" + currClass + ">.");
             else if (argu=="Type")
@@ -474,13 +476,13 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
         String type = n.f0.accept(this, null);
         // String type = symbolTable.find_type_in_scope(class_object, currMethod, currClass);
         // System.out.println("------------ printing type "+type);
-        String method_name = n.f2.accept(this, null);
+        String method_name = n.f2.accept(this, "name");
         // System.out.println("Return type: "+ return_type);
 
         n.f4.accept(this, null);
-        String return_type = symbolTable.find_method_type(method_name, type, expression_list);
 
-        expression_list.clear();
+        String return_type = symbolTable.find_method_type(method_name, type, expression_list.remove(expression_list.size()-1));
+
         return return_type;
     }
 
@@ -489,7 +491,13 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
     * f1 -> ExpressionTail()
     */
    public String visit(ExpressionList n, String argu) throws Exception {
-        expression_list.add(n.f0.accept(this, null));
+        List<String> new_list = new ArrayList<>();
+        
+        String res =n.f0.accept(this, null);
+
+        new_list.add(res);
+        expression_list.add(new_list);
+        
         n.f1.accept(this, null);
         return null;
     }
@@ -499,7 +507,11 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
     * f1 -> Expression()
     */
     public String visit(ExpressionTerm n, String argu) throws Exception {
-        expression_list.add(n.f1.accept(this, null));
+        List<String> insert_list = expression_list.get(expression_list.size()-1);
+        
+        String res =n.f1.accept(this, null);
+
+        insert_list.add(res);
         return null;
     }
 
