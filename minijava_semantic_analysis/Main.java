@@ -26,12 +26,13 @@ public class Main {
 
                 FirstVisitor eval = new FirstVisitor();
                 root.accept(eval, null);
-                System.err.println("FirstVisitor done.");
+                // System.err.println("FirstVisitor done.");
 
                 SecondVisitor eval2 = new SecondVisitor(eval.symbolTable);
                 root.accept(eval2, null);
+                
                 System.err.println("Program is semantically correct.");
-                eval.offset.print();
+                eval.offset.print(); /* print offsets */
             }
             catch(ParseException ex){
                 System.out.println(ex.getMessage());
