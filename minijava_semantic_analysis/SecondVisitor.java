@@ -3,7 +3,7 @@ import syntaxtree.*;
 import java.util.LinkedList;
 import java.util.List;
 
-public class SecondVisitor extends GJDepthFirst<String,Void>{
+public class SecondVisitor extends GJDepthFirst<String,String>{
     SymbolTable symbolTable;
     String currClass = null;
     String currMethod = null;
@@ -34,14 +34,14 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f16 -> "}"
     * f17 -> "}"
     */
-    public String visit(MainClass n, Void argu) throws Exception {
+    public String visit(MainClass n, String argu) throws Exception {
 
-        currClass = n.f1.accept(this, argu);
+        currClass = n.f1.accept(this, null);
         currMethod = n.f6.toString();
        
-        n.f14.accept(this, argu);
+        n.f14.accept(this, null);
         method_statements = true;
-        n.f15.accept(this, argu);
+        n.f15.accept(this, null);
         method_statements = false;
 
         currMethod = null;
@@ -57,12 +57,12 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f4 -> ( MethodDeclaration() )*
     * f5 -> "}"
     */
-    public String visit(ClassDeclaration n, Void argu) throws Exception {
+    public String visit(ClassDeclaration n, String argu) throws Exception {
   
-        currClass = n.f1.accept(this, argu);
+        currClass = n.f1.accept(this, null);
 
-        n.f3.accept(this, argu);
-        n.f4.accept(this, argu);
+        n.f3.accept(this, null);
+        n.f4.accept(this, null);
         currClass = null;
 
         return null;
@@ -78,12 +78,12 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f6 -> ( MethodDeclaration() )*
     * f7 -> "}"
     */
-    public String visit(ClassExtendsDeclaration n, Void argu) throws Exception {
+    public String visit(ClassExtendsDeclaration n, String argu) throws Exception {
 
-        currClass = n.f1.accept(this, argu);
+        currClass = n.f1.accept(this, null);
 
-        n.f5.accept(this, argu);
-        n.f6.accept(this, argu);
+        n.f5.accept(this, null);
+        n.f6.accept(this, null);
 
         currClass = null;
         return null;
@@ -104,18 +104,18 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f11 -> ";"
     * f12 -> "}"
     */
-    public String visit(MethodDeclaration n, Void argu) throws Exception {
-        String ReturnType = n.f1.accept(this, argu);
+    public String visit(MethodDeclaration n, String argu) throws Exception {
+        String ReturnType = n.f1.accept(this, null);
 
-        currMethod = n.f2.accept(this, argu);
+        currMethod = n.f2.accept(this, null);
 
-        n.f4.accept(this, argu);
+        n.f4.accept(this, null);
 
-        n.f7.accept(this, argu);
+        n.f7.accept(this, null);
         method_statements = true;
-        n.f8.accept(this, argu);
+        n.f8.accept(this, null);
 
-        String ReturnExpr = n.f10.accept(this, argu);
+        String ReturnExpr = n.f10.accept(this, null);
         if (!ReturnExpr.equals(ReturnType)) {
             throw new Exception("Return expression doesn't match actual return type.");
         }
@@ -131,8 +131,8 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f0 -> NotExpression()
     *       | PrimaryExpression()
     */
-    public String visit(Clause n, Void argu) throws Exception {
-        return n.f0.accept(this, argu);
+    public String visit(Clause n, String argu) throws Exception {
+        return n.f0.accept(this, null);
     }
 
     /**
@@ -145,19 +145,23 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     *       | AllocationExpression()
     *       | BracketExpression()
     */
-    public String visit(PrimaryExpression n, Void argu) throws Exception {
-        return n.f0.accept(this, argu);
+    public String visit(PrimaryExpression n, String argu) throws Exception {
+        return n.f0.accept(this, "PrimaryExpression");
     }
 
     /**
     * f0 -> <IDENTIFIER>
     */
-    public String visit(Identifier n, Void argu) throws Exception { //TODO: maybe I can check the identifiers in higher levels
-        /* check the scope. If we are inside a funtion below declarations we need to return the type */
+    public String visit(Identifier n, String argu) throws Exception { //TODO: maybe I can check the identifiers in higher levels
+        /* check calling method. If we are inside a funtion below declarations we need to return the type */
         if (method_statements == true) {
             String type = symbolTable.find_type_in_scope(n.f0.toString(), currMethod, currClass);
             // System.out.println("found type "+type+" for variable "+n.f0.toString()+ " in method " + currMethod + " in class " +currClass);
             if (type != null) return type;
+            else if (argu=="AssignmentStatement" || argu=="PrimaryExpression")
+                throw new Exception("Undefined variable <" + n.f0.toString() + "> in <"+argu+"> in method <" + currMethod + "> in class <" + currClass + ">.");
+            else if (argu=="Type")
+                throw new Exception("Undefined type <" + n.f0.toString() + "> in method <" + currMethod + "> in class <" + currClass + ">.");
         }
         return n.f0.toString();
     }
@@ -165,7 +169,7 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     /**
     * f0 -> "this"
     */
-    public String visit(ThisExpression n, Void argu) throws Exception {
+    public String visit(ThisExpression n, String argu) throws Exception {
         /* this refers to current object. It is used inside a function, inside a class so current class is its type */
         return currClass;
     }
@@ -177,9 +181,9 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f3 -> Expression()
     * f4 -> "]"
     */
-    public String visit(BooleanArrayAllocationExpression n, Void argu) throws Exception {
+    public String visit(BooleanArrayAllocationExpression n, String argu) throws Exception {
 
-        String index_type = n.f3.accept(this, argu);
+        String index_type = n.f3.accept(this, null);
         if (!index_type.equals("int"))
             throw new Exception("Array size not int.");
 
@@ -193,9 +197,9 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f3 -> Expression()
     * f4 -> "]"
     */
-    public String visit(IntegerArrayAllocationExpression n, Void argu) throws Exception {
+    public String visit(IntegerArrayAllocationExpression n, String argu) throws Exception {
         
-        String index_type = n.f3.accept(this, argu);
+        String index_type = n.f3.accept(this, null);
         if (!index_type.equals("int"))
             throw new Exception("Array size not int.");
 
@@ -208,9 +212,9 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f2 -> "("
     * f3 -> ")"
     */
-    public String visit(AllocationExpression n, Void argu) throws Exception {
+    public String visit(AllocationExpression n, String argu) throws Exception {
         /* TODO: Is this true? Identifier here is a class */
-        String id_name = n.f1.accept(this, argu);
+        String id_name = n.f1.accept(this, null);
         if (!symbolTable.class_exists(id_name)) throw new Exception("Identifier <" + id_name + "> in new Identifier() expression doesn't exist");
         return id_name;
     }
@@ -220,8 +224,8 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f1 -> Expression()
     * f2 -> ")"
     */
-    public String visit(BracketExpression n, Void argu) throws Exception {
-        return n.f1.accept(this, argu); /* type is f1's type */
+    public String visit(BracketExpression n, String argu) throws Exception {
+        return n.f1.accept(this, null); /* type is f1's type */
     }
 
     /**
@@ -229,10 +233,10 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f1 -> "<"
     * f2 -> PrimaryExpression()
     */
-    public String visit(CompareExpression n, Void argu) throws Exception {
+    public String visit(CompareExpression n, String argu) throws Exception {
         
-        String ex1 = n.f0.accept(this, argu);
-        String ex2 = n.f2.accept(this, argu);
+        String ex1 = n.f0.accept(this, null);
+        String ex2 = n.f2.accept(this, null);
 
         if (!ex1.equals("int") || !ex2.equals("int")) 
             throw new Exception("Operands not int in < operator");
@@ -245,9 +249,9 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f1 -> "+"
     * f2 -> PrimaryExpression()
     */
-    public String visit(PlusExpression n, Void argu) throws Exception {
-        String ex1 = n.f0.accept(this, argu);
-        String ex2 = n.f2.accept(this, argu);
+    public String visit(PlusExpression n, String argu) throws Exception {
+        String ex1 = n.f0.accept(this, null);
+        String ex2 = n.f2.accept(this, null);
 
         if (!ex1.equals("int") || !ex2.equals("int")) 
             throw new Exception("Operands not int in + operator");
@@ -260,9 +264,9 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f1 -> "-"
     * f2 -> PrimaryExpression()
     */
-    public String visit(MinusExpression n, Void argu) throws Exception {
-        String ex1 = n.f0.accept(this, argu);
-        String ex2 = n.f2.accept(this, argu);
+    public String visit(MinusExpression n, String argu) throws Exception {
+        String ex1 = n.f0.accept(this, null);
+        String ex2 = n.f2.accept(this, null);
 
         if (!ex1.equals("int") || !ex2.equals("int")) 
             throw new Exception("Operands not int in - operator");
@@ -275,9 +279,9 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f1 -> "*"
     * f2 -> PrimaryExpression()
     */
-    public String visit(TimesExpression n, Void argu) throws Exception {
-        String ex1 = n.f0.accept(this, argu);
-        String ex2 = n.f2.accept(this, argu);
+    public String visit(TimesExpression n, String argu) throws Exception {
+        String ex1 = n.f0.accept(this, null);
+        String ex2 = n.f2.accept(this, null);
 
         if (!ex1.equals("int") || !ex2.equals("int")) 
             throw new Exception("Operands not int in * operator");
@@ -291,10 +295,10 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f2 -> PrimaryExpression()
     * f3 -> "]"
     */
-    public String visit(ArrayLookup n, Void argu) throws Exception {
-        String ReturnType = n.f0.accept(this, argu);
+    public String visit(ArrayLookup n, String argu) throws Exception {
+        String ReturnType = n.f0.accept(this, null);
 
-        String array_index = n.f2.accept(this, argu);
+        String array_index = n.f2.accept(this, null);
         if (!array_index.equals("int"))
             throw new Exception("Array index not int.");
 
@@ -312,9 +316,9 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f1 -> "."
     * f2 -> "length"
     */
-    public String visit(ArrayLength n, Void argu) throws Exception {
+    public String visit(ArrayLength n, String argu) throws Exception {
         
-        String type = n.f0.accept(this, argu);
+        String type = n.f0.accept(this, null);
         if (!type.equals("int[]") && !type.equals("boolean[]"))
             throw new Exception("Non array objects don't have .length member.");
 
@@ -332,8 +336,8 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     *       | MessageSend()
     *       | Clause()
     */
-    public String visit(Expression n, Void argu) throws Exception {
-        return n.f0.accept(this, argu);
+    public String visit(Expression n, String argu) throws Exception {
+        return n.f0.accept(this, null);
     }
 
     /**
@@ -341,9 +345,9 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f1 -> "&&"
     * f2 -> Clause()
     */
-    public String visit(AndExpression n, Void argu) throws Exception {
-        String type1 = n.f0.accept(this, argu);
-        String type2 = n.f2.accept(this, argu);
+    public String visit(AndExpression n, String argu) throws Exception {
+        String type1 = n.f0.accept(this, null);
+        String type2 = n.f2.accept(this, null);
         if (!type1.equals("boolean") || !type2.equals("boolean"))
             throw new Exception("Clauses in && operand not boolean.");
         return "boolean";
@@ -353,8 +357,8 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f0 -> "!"
     * f1 -> Clause()
     */
-    public String visit(NotExpression n, Void argu) throws Exception {
-        String type = n.f1.accept(this, argu);
+    public String visit(NotExpression n, String argu) throws Exception {
+        String type = n.f1.accept(this, null);
         if (!type.equals("boolean"))
             throw new Exception("Clause in ! operand not boolean.");
         return "boolean";
@@ -367,9 +371,9 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f2 -> Expression()
     * f3 -> ";"
     */
-    public String visit(AssignmentStatement n, Void argu) throws Exception {
-        String id_type = n.f0.accept(this, argu);
-        String expr_type = n.f2.accept(this, argu);
+    public String visit(AssignmentStatement n, String argu) throws Exception {
+        String id_type = n.f0.accept(this, "AssignmentStatement");
+        String expr_type = n.f2.accept(this, null);
 
         if (id_type.equals(expr_type))
             return null; /* case class_type = class_type and int=int, boolean=boolean, int[]=int[],  boolean[]=boolean[] */
@@ -389,10 +393,10 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f5 -> Expression()
     * f6 -> ";"
     */
-    public String visit(ArrayAssignmentStatement n, Void argu) throws Exception {
-        String id_type = n.f0.accept(this, argu);
-        String index_type = n.f2.accept(this, argu);
-        String expr_type = n.f5.accept(this, argu);
+    public String visit(ArrayAssignmentStatement n, String argu) throws Exception {
+        String id_type = n.f0.accept(this, null);
+        String index_type = n.f2.accept(this, null);
+        String expr_type = n.f5.accept(this, null);
         if (!index_type.equals("int"))
             throw new Exception("Index type in array assignment statement is not int.");
 
@@ -412,16 +416,16 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f5 -> "else"
     * f6 -> Statement()
     */
-    public String visit(IfStatement n, Void argu) throws Exception {
-        n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
-        String expr_type = n.f2.accept(this, argu);
+    public String visit(IfStatement n, String argu) throws Exception {
+        n.f0.accept(this, null);
+        n.f1.accept(this, null);
+        String expr_type = n.f2.accept(this, null);
         if (!expr_type.equals("boolean"))
             throw new Exception("If condition is not boolean.");
-        n.f3.accept(this, argu);
-        n.f4.accept(this, argu);
-        n.f5.accept(this, argu);
-        n.f6.accept(this, argu);
+        n.f3.accept(this, null);
+        n.f4.accept(this, null);
+        n.f5.accept(this, null);
+        n.f6.accept(this, null);
         return null;
     }
 
@@ -432,14 +436,14 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f3 -> ")"
     * f4 -> Statement()
     */
-    public String visit(WhileStatement n, Void argu) throws Exception {
-        n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
-        String expr_type = n.f2.accept(this, argu);
+    public String visit(WhileStatement n, String argu) throws Exception {
+        n.f0.accept(this, null);
+        n.f1.accept(this, null);
+        String expr_type = n.f2.accept(this, null);
         if (!expr_type.equals("boolean"))
             throw new Exception("While condition is not boolean.");
-        n.f3.accept(this, argu);
-        n.f4.accept(this, argu);
+        n.f3.accept(this, null);
+        n.f4.accept(this, null);
         return null;
     }
 
@@ -450,9 +454,9 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f3 -> ")"
     * f4 -> ";"
     */
-    public String visit(PrintStatement n, Void argu) throws Exception {
+    public String visit(PrintStatement n, String argu) throws Exception {
 
-        String type = n.f2.accept(this, argu);
+        String type = n.f2.accept(this, null);
         if (!type.equals("int"))
             throw new Exception("Print expression only accepts int.");
         return null;
@@ -466,14 +470,14 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f4 -> ( ExpressionList() )?
     * f5 -> ")"
     */
-    public String visit(MessageSend n, Void argu) throws Exception {
-        String type = n.f0.accept(this, argu);
+    public String visit(MessageSend n, String argu) throws Exception {
+        String type = n.f0.accept(this, null);
         // String type = symbolTable.find_type_in_scope(class_object, currMethod, currClass);
         // System.out.println("------------ printing type "+type);
-        String method_name = n.f2.accept(this, argu);
+        String method_name = n.f2.accept(this, null);
         // System.out.println("Return type: "+ return_type);
 
-        n.f4.accept(this, argu);
+        n.f4.accept(this, null);
         String return_type = symbolTable.find_method_type(method_name, type, expression_list);
 
         expression_list.clear();
@@ -484,9 +488,9 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f0 -> Expression()
     * f1 -> ExpressionTail()
     */
-   public String visit(ExpressionList n, Void argu) throws Exception {
-        expression_list.add(n.f0.accept(this, argu));
-        n.f1.accept(this, argu);
+   public String visit(ExpressionList n, String argu) throws Exception {
+        expression_list.add(n.f0.accept(this, null));
+        n.f1.accept(this, null);
         return null;
     }
 
@@ -494,8 +498,8 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
      * f0 -> ","
     * f1 -> Expression()
     */
-    public String visit(ExpressionTerm n, Void argu) throws Exception {
-        expression_list.add(n.f1.accept(this, argu));
+    public String visit(ExpressionTerm n, String argu) throws Exception {
+        expression_list.add(n.f1.accept(this, null));
         return null;
     }
 
@@ -503,21 +507,21 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     /**
     * f0 -> <INTEGER_LITERAL>
     */
-    public String visit(IntegerLiteral n, Void argu) throws Exception {
+    public String visit(IntegerLiteral n, String argu) throws Exception {
         return "int";
     }
 
     /**
      * f0 -> "true"
     */
-    public String visit(TrueLiteral n, Void argu) throws Exception {
+    public String visit(TrueLiteral n, String argu) throws Exception {
         return "boolean";
     }
 
     /**
      * f0 -> "false"
     */
-    public String visit(FalseLiteral n, Void argu) throws Exception {
+    public String visit(FalseLiteral n, String argu) throws Exception {
         return "boolean";
     }
 
@@ -526,7 +530,7 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f1 -> "["
     * f2 -> "]"
     */
-    public String visit(BooleanArrayType n, Void argu) throws Exception {
+    public String visit(BooleanArrayType n, String argu) throws Exception {
         return "boolean[]";
     }
 
@@ -535,21 +539,31 @@ public class SecondVisitor extends GJDepthFirst<String,Void>{
     * f1 -> "["
     * f2 -> "]"
     */
-    public String visit(IntegerArrayType n, Void argu) throws Exception {
+    public String visit(IntegerArrayType n, String argu) throws Exception {
         return "int[]";
     }
 
     /**
     * f0 -> "boolean"
     */
-    public String visit(BooleanType n, Void argu) throws Exception {
+    public String visit(BooleanType n, String argu) throws Exception {
         return n.f0.toString();
     }
 
     /**
      * f0 -> "int"
     */
-    public String visit(IntegerType n, Void argu) throws Exception {
+    public String visit(IntegerType n, String argu) throws Exception {
         return n.f0.toString();
+    }
+
+    /**
+    * f0 -> ArrayType()
+    *       | BooleanType()
+    *       | IntegerType()
+    *       | Identifier()
+    */
+    public String visit(Type n, String argu) throws Exception { /* in case of type Identifier */
+        return n.f0.accept(this, "Type");
     }
 }
