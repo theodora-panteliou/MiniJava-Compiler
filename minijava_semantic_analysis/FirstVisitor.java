@@ -48,7 +48,7 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
         args.add(n.f11.accept(this, argu));
         
         List<String> types = new LinkedList<String>();
-        args.add("String[]");
+        types.add("String[]");
         
         symbolTable.addClassMethod(methodname, classname, args, types, "static void"); /* return type doesn't really matter, 
                                                         static method cannot be overriden so set "static void" so it doen't match with 
@@ -263,30 +263,5 @@ public class FirstVisitor extends GJDepthFirst<String,Void> {
     public String visit(IntegerType n, Void argu) throws Exception {
         return n.f0.toString();
     }
-
-    // /**
-    // * f0 -> "true"
-    // */
-    // @Override
-    // public String visit(TrueLiteral n, Void argu) throws Exception {
-    //     return "boolean";
-    // }
-
-    // /**
-    //  * f0 -> "false"
-    // */
-    // @Override
-    // public String visit(FalseLiteral n, Void argu) throws Exception {
-    //     return "boolean";
-    // }
-    
-    // /**
-    // * f0 -> <INTEGER_LITERAL>
-    // */
-    // @Override
-    // public String visit(IntegerLiteral n, Void argu) throws Exception {
-    //     // System.out.println("I am int: "+n.f0.toString());
-    //     return "int";
-    // }
 
 }
