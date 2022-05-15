@@ -108,8 +108,11 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
     */
     public String visit(MethodDeclaration n, String argu) throws Exception {
         String ReturnType = n.f1.accept(this, null);
-
+        
         currMethod = n.f2.accept(this, null);
+        
+        if (!ReturnType.equals("int") && !ReturnType.equals("int[]") && !ReturnType.equals("boolean") && !ReturnType.equals("boolean[]") && !symbolTable.class_exists(ReturnType))
+            throw new Exception("Undefined Return Type in method <"+currMethod + "> in class <"+currClass+">.");
 
         n.f4.accept(this, null);
 
@@ -118,8 +121,8 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
         n.f8.accept(this, null);
 
         String ReturnExpr = n.f10.accept(this, null);
-        if (!ReturnExpr.equals(ReturnType)) {
-            throw new Exception("Return expression doesn't match actual return type.");
+        if (!ReturnExpr.equals(ReturnType) && !symbolTable.is_superclass(ReturnType, ReturnExpr)) {
+            throw new Exception("Return expression of type <"+ ReturnExpr +"> doesn't match actual return type <"+ReturnType+">.");
         }
 
         method_statements = false;
@@ -481,7 +484,15 @@ public class SecondVisitor extends GJDepthFirst<String,String>{
 
         n.f4.accept(this, null);
 
-        String return_type = symbolTable.find_method_type(method_name, type, expression_list.remove(expression_list.size()-1));
+        List<String> curr_parameters = null;
+        if (expression_list.size()-1 <0){
+            curr_parameters = new LinkedList<String>();
+        }
+        else {
+            curr_parameters = expression_list.remove(expression_list.size()-1);
+        }
+
+        String return_type = symbolTable.find_method_type(method_name, type, curr_parameters);
 
         return return_type;
     }

@@ -270,11 +270,6 @@ class MethodInfo { /* holds all information for the method */
         this.ReturnType = ReturnType;
     }
 
-    // MethodInfo(String MethodName, String ClassName){ /* for comparisons */
-    //     this.ClassName = ClassName;
-    //     this.MethodName = MethodName;
-    // }
-
     @Override
     public boolean equals(Object o) {
         /* source: https://www.baeldung.com/java-comparing-objects */
@@ -322,10 +317,6 @@ class ClassInfo {
         this.superclass = superclass;
     }
 
-    ClassInfo(String name){
-        this.name = name;
-    }
-
     public void addMethod(String name,MethodInfo method){
         methods.put(name, method);
     }
@@ -364,11 +355,6 @@ class VariableInfo {
         this.type = type;
         this.method = method;
         this.classname = classname;
-    }
-
-    VariableInfo(String name, String ClassName){ /* for comparisons only */
-        this.name = name;
-        this.classname = ClassName;
     }
 
     public String getType(){
