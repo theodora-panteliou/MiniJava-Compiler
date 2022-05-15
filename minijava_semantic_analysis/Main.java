@@ -15,7 +15,7 @@ public class Main {
 
         FileInputStream fis = null;
         for (int i=0; i<args.length; i++) {
-            System.out.println("***File: " + args[i]+"***");
+            System.out.println("\u001B[35m" + "***File: " + args[i]+"***" + "\u001B[0m");
             try{
                 fis = new FileInputStream(args[i]);
                 MiniJavaParser parser = new MiniJavaParser(fis);
@@ -31,7 +31,7 @@ public class Main {
                 SecondVisitor eval2 = new SecondVisitor(eval.symbolTable);
                 root.accept(eval2, null);
                 
-                System.err.println("Program is semantically correct.");
+                System.err.println("Program is semantically correct.\n");
                 eval.offset.print(); /* print offsets */
             }
             catch(ParseException ex){
