@@ -26,10 +26,8 @@ public class Offset {
         curr_class = ClassName;
 
         if (SuperClassName!=null) { /* Start offset after the previous class */
-            System.out.println("in superclass");
             next_field_offset = last_field_offset.get(SuperClassName);
             next_method_offset = last_method_offset.get(SuperClassName);
-            System.out.println("after superclass");
         }
         else {
             next_field_offset = 0;
