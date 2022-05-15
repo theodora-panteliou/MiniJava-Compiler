@@ -23,6 +23,8 @@ public class Offset {
         LinkedHashMap<String, Integer> methods_map = new LinkedHashMap<>();
         method_offsets.put(ClassName, methods_map);
         
+        inherit.put(ClassName, SuperClassName);
+
         curr_class = ClassName;
 
         if (SuperClassName!=null) { /* Start offset after the previous class */
@@ -53,9 +55,9 @@ public class Offset {
 
     public void add_method(String name){
         /* check if method exists in any superclass */
-        String curr = inherit.get(name);
+        String curr = curr_class;
         while (curr!=null) {
-            if (method_offsets.get(curr) != null) return;
+            if (method_offsets.get(curr) != null){ return;}
             curr = inherit.get(curr);
         } 
 
