@@ -218,6 +218,26 @@ public class SymbolTable {
         throw new Exception("Method <"+MethodName+"> doesn't exist for type <"+ ClassName + ">");
     }
 
+    public List<String> return_method_info(String MethodName, String ClassName){
+        Map<String, MethodInfo> by_method = method_in_class.get(MethodName);
+                
+        MethodInfo temp;
+        ClassInfo curr_class = class_dec.get(ClassName);
+        while (curr_class != null){
+            temp = by_method.get(curr_class.name());
+            
+            if (temp!=null) {
+                /* check if method parameter expressions are the correct type */
+                List<String> ret = temp.getArgTypes();
+                ret.add(0, temp.getReturnType());
+                return ret;
+            }
+            
+            curr_class = curr_class.getSuper();
+        }
+        return null;
+    }
+
     public boolean class_exists(String ClassName){
         return class_dec.containsKey(ClassName);
     }
@@ -270,6 +290,10 @@ class MethodInfo { /* holds all information for the method */
 
     public String getReturnType(){
         return ReturnType;
+    }
+
+    public List<String> getArgTypes(){
+        return arg_types;
     }
 
     public boolean check_types(List<String> parameters_types, SymbolTable sTable) {

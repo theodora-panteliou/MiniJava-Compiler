@@ -1,5 +1,8 @@
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Iterator;
+
 import java.util.HashMap;
 
 public class Offset {
@@ -83,6 +86,52 @@ public class Offset {
             }
             System.out.println();
         }
+    }
+
+    public String make_vtable(SymbolTable st) {
+        String vtable = "";
+        /* add main */
+        vtable += "@."+ main_class + "_vtable = global [0 x i8*] []\n";
+        for (String classname: field_offsets.keySet()){
+            vtable += "@."+ classname + "_vtable = global [" + method_offsets.get(classname).size() + " x i8*] [";
+            
+            for (String method: method_offsets.get(classname).keySet()){
+                List<String> arglist = st.return_method_info(method, classname);
+                String ret_type = get_ir_type(arglist.get(0));
+                
+                String arg_types = "";
+                Iterator<String> args = arglist.iterator();
+                args.next();
+                while (args.hasNext()) {
+                    arg_types += "," + get_ir_type(args.next());
+                }
+
+                vtable +=  "i8* bitcast (" + ret_type + " (i8*" + arg_types + ")* @" + classname + "." + method + " to i8*), ";
+            }
+            vtable = vtable.substring(0, vtable.length() - 2) + "]\n";
+        }
+
+        return vtable;
+    }
+
+    private String get_ir_type(String arg){
+        String type;
+        if (arg.equals("int")){
+            type = "i32";
+        }
+        else if (arg.equals("boolean")){
+            type = "i1";
+        }
+        else if (arg.equals("int[]")){
+            type = "i32*";
+        }
+        else if (arg.equals("boolean[]")){
+            type = "i1*";
+        }
+        else {
+            type = "i8*";
+        }
+        return type;
     }
 
 }
