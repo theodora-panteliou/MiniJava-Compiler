@@ -95,20 +95,31 @@ public class Offset {
         for (String classname: field_offsets.keySet()){
             vtable += "@."+ classname + "_vtable = global [" + method_offsets.get(classname).size() + " x i8*] [";
             
-            for (String method: method_offsets.get(classname).keySet()){
-                List<String> arglist = st.return_method_info(method, classname);
-                String ret_type = get_ir_type(arglist.get(0));
-                
-                String arg_types = "";
-                Iterator<String> args = arglist.iterator();
-                args.next();
-                while (args.hasNext()) {
-                    arg_types += "," + get_ir_type(args.next());
-                }
+            String curr = classname;
+            String methods_str = "";
+            while (curr!=null){
+                methods_str = "";
+                for (String method: method_offsets.get(curr).keySet()){
+                    List<String> arglist = st.return_method_info(method, curr);
+                    String ret_type = get_ir_type(arglist.get(0));
+                    
+                    String arg_types = "";
+                    Iterator<String> args = arglist.iterator();
+                    args.next();
+                    while (args.hasNext()) {
+                        arg_types += "," + get_ir_type(args.next());
+                    }
 
-                vtable +=  "i8* bitcast (" + ret_type + " (i8*" + arg_types + ")* @" + classname + "." + method + " to i8*), ";
+                    methods_str +=  "i8* bitcast (" + ret_type + " (i8*" + arg_types + ")* @" + classname + "." + method + " to i8*), ";
+                }
+                curr = inherit.get(curr);
             }
-            vtable = vtable.substring(0, vtable.length() - 2) + "]\n";
+            if (methods_str.length() < 2){
+                vtable += "]\n";
+            }
+            else {
+                vtable += methods_str.substring(0, methods_str.length() - 2) + "]\n";
+            }
         }
 
         return vtable;
