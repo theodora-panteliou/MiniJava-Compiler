@@ -93,12 +93,13 @@ public class Offset {
         /* add main */
         vtable += "@."+ main_class + "_vtable = global [0 x i8*] []\n";
         for (String classname: field_offsets.keySet()){
-            vtable += "@."+ classname + "_vtable = global [" + method_offsets.get(classname).size() + " x i8*] [";
-            
+            int size = 0;
             String curr = classname;
             String methods_str = "";
             while (curr!=null){
-                methods_str = "";
+                size += method_offsets.get(curr).size();
+                String temp = "";
+
                 for (String method: method_offsets.get(curr).keySet()){
                     List<String> arglist = st.return_method_info(method, curr);
                     String ret_type = get_ir_type(arglist.get(0));
@@ -109,11 +110,12 @@ public class Offset {
                     while (args.hasNext()) {
                         arg_types += "," + get_ir_type(args.next());
                     }
-
-                    methods_str +=  "i8* bitcast (" + ret_type + " (i8*" + arg_types + ")* @" + classname + "." + method + " to i8*), ";
+                    temp +=  "i8* bitcast (" + ret_type + " (i8*" + arg_types + ")* @" + classname + "." + method + " to i8*), ";
                 }
+                methods_str = temp + methods_str;
                 curr = inherit.get(curr);
             }
+            vtable += "@."+ classname + "_vtable = global [" + size + " x i8*] [";
             if (methods_str.length() < 2){
                 vtable += "]\n";
             }
