@@ -6,13 +6,37 @@ import visitor.GJDepthFirst;
 public class LLVMVisitor extends GJDepthFirst<String,String> {
     SymbolTable symbolTable = null;
     Offset offsets = null;
-    String vtable_string = "";
-    int reg_counter = 0;
+    private String vtable_string = "";
+    private int reg_counter = 0;
+    
+    private String get_reg() {
+        return "%_"+reg_counter++;
+    }
 
     LLVMVisitor(SymbolTable st, Offset os){
         this.symbolTable = st;
         this.offsets = os;
         vtable_string = offsets.make_vtable(st);
+    }
+
+    private String get_ir_type(String arg){
+        String type;
+        if (arg.equals("int")){
+            type = "i32";
+        }
+        else if (arg.equals("boolean")){
+            type = "i1";
+        }
+        else if (arg.equals("int[]")){
+            type = "i32*";
+        }
+        else if (arg.equals("boolean[]")){
+            type = "i8*";
+        }
+        else {
+            type = "i8*";
+        }
+        return type;
     }
 
     /**
@@ -44,11 +68,11 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         }
         """;
 
-        
+        argu = "";
         String main = n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
+        String rest = n.f1.accept(this, argu);
         n.f2.accept(this, argu);
-        return vtable_string + _ret + main;
+        return vtable_string + _ret + main + rest;
     }
 
     /**
@@ -84,4 +108,184 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         _ret += "\n\tret i32 0\n}";
         return _ret;
      }
+
+    /**
+    * f0 -> "class"
+    * f1 -> Identifier()
+    * f2 -> "{"
+    * f3 -> ( VarDeclaration() )*
+    * f4 -> ( MethodDeclaration() )*
+    * f5 -> "}"
+    */
+    public String visit(ClassDeclaration n, String argu) throws Exception {
+        String _ret=null;
+        n.f1.accept(this, argu);
+
+        n.f3.accept(this, argu);
+        String temp = n.f4.accept(this, argu);
+        if (temp != null) {
+            argu += temp;
+        }
+        System.out.println("num {" + "}\n");
+        System.out.println("here {" + argu + "}\n");
+
+        return argu;
+    }
+
+    /**
+    * f0 -> "class"
+    * f1 -> Identifier()
+    * f2 -> "extends"
+    * f3 -> Identifier()
+    * f4 -> "{"
+    * f5 -> ( VarDeclaration() )*
+    * f6 -> ( MethodDeclaration() )*
+    * f7 -> "}"
+    */
+    public String visit(ClassExtendsDeclaration n, String argu) throws Exception {
+        String _ret=null;
+
+        n.f1.accept(this, argu);
+
+        n.f3.accept(this, argu);
+
+        n.f5.accept(this, argu);
+        String temp = n.f6.accept(this, argu);
+        if (temp != null) {
+            argu += temp;
+        }
+        System.out.println("here {" + argu + "}\n");
+
+        return argu;
+    }
+
+    /**
+    * f0 -> Type()
+    * f1 -> Identifier()
+    * f2 -> ";"
+    */
+    public String visit(VarDeclaration n, String argu) throws Exception {
+        String _ret=null;
+        String type = n.f0.accept(this, argu);
+        String name = n.f1.accept(this, argu);
+        // System.out.println("x " + type);
+        argu += "%" + name + " = alloca " + get_ir_type(type);
+        return argu;
+    }
+    
+    /**
+    * f0 -> "public"
+    * f1 -> Type()
+    * f2 -> Identifier()
+    * f3 -> "("
+    * f4 -> ( FormalParameterList() )?
+    * f5 -> ")"
+    * f6 -> "{"
+    * f7 -> ( VarDeclaration() )*
+    * f8 -> ( Statement() )*
+    * f9 -> "return"
+    * f10 -> Expression()
+    * f11 -> ";"
+    * f12 -> "}"
+    */
+    public String visit(MethodDeclaration n, String argu) throws Exception {
+        // argu="";
+        n.f1.accept(this, argu);
+        n.f2.accept(this, argu);
+
+        String params = n.f4.accept(this, argu);
+        if (params!=null){
+            argu += params;
+        }
+        System.out.println("\nmethoddec {\n"+argu+"}\n");
+
+        n.f7.accept(this, argu);
+        n.f8.accept(this, argu);
+
+        n.f10.accept(this, argu);
+        return argu;
+    }
+
+    /**
+    * f0 -> FormalParameter()
+    * f1 -> FormalParameterTail()
+    */
+    public String visit(FormalParameterList n, String argu) throws Exception {
+        argu="";
+        argu = n.f0.accept(this, argu);
+        argu += n.f1.accept(this, argu);
+        // System.out.println("\nFormalParameterList {\n"+argu+"}\n");
+        return argu;
+    }
+
+    /**
+    * f0 -> Type()
+    * f1 -> Identifier()
+    */
+    public String visit(FormalParameter n, String argu) throws Exception {
+        String type = n.f0.accept(this, argu);
+        String name = n.f1.accept(this, argu);
+        argu += "%" + name + " = alloca " + get_ir_type(type) + "\n";
+        argu += "store " + get_ir_type(type) + " %." + name + ", " + get_ir_type(type) + "* %" + name + "\n";
+        // System.out.println("\nFormalParameter {\n"+argu+"}\n");
+        return argu;
+    }
+
+    /**
+     * f0 -> ( FormalParameterTerm() )*
+    */
+    public String visit(FormalParameterTail n, String argu) throws Exception {
+        String res = n.f0.accept(this, argu);
+        if (res == null) {
+            res = "";
+        }
+        return res;
+    }
+
+    /**
+     * f0 -> ","
+    * f1 -> FormalParameter()
+    */
+    public String visit(FormalParameterTerm n, String argu) throws Exception {
+        return n.f1.accept(this, argu);
+    }
+
+    /**
+     * f0 -> "boolean"
+    * f1 -> "["
+    * f2 -> "]"
+    */
+    public String visit(BooleanArrayType n, String argu) throws Exception {
+        return "boolean[]";
+    }
+
+    /**
+     * f0 -> "int"
+    * f1 -> "["
+    * f2 -> "]"
+    */
+    public String visit(IntegerArrayType n, String argu) throws Exception {
+        return "int[]";
+    }
+
+    /**
+     * f0 -> "boolean"
+    */
+    public String visit(BooleanType n, String argu) throws Exception {
+        return n.f0.toString();
+    }
+
+    /**
+     * f0 -> "int"
+    */
+    public String visit(IntegerType n, String argu) throws Exception {
+        return n.f0.toString();
+    }
+
+    /**
+    * f0 -> <IDENTIFIER>
+    */
+    public String visit(Identifier n, String argu) throws Exception {
+        return n.f0.toString();
+    }
 }

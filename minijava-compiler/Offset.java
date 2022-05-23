@@ -139,7 +139,7 @@ public class Offset {
             type = "i32*";
         }
         else if (arg.equals("boolean[]")){
-            type = "i1*";
+            type = "i8*";
         }
         else {
             type = "i8*";
