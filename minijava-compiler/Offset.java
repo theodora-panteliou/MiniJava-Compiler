@@ -80,7 +80,7 @@ public class Offset {
             for (String field: field_offsets.get(classname).keySet()){
                 System.out.println(classname + "." + field + " : " + field_offsets.get(classname).get(field));
             }
-            System.out.println("--Methods---");
+            System.out.println("---Methods---");
             for (String method: method_offsets.get(classname).keySet()){
                 System.out.println(classname + "." + method + " : " + method_offsets.get(classname).get(method));
             }
