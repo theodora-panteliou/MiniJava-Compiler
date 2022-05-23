@@ -18,7 +18,7 @@ public class Main {
 
         FileInputStream fis = null;
         for (int i=0; i<args.length; i++) {
-            System.out.println("\u001B[35m" + "***File: " + args[i]+"***" + "\u001B[0m");
+            System.err.println("\u001B[35m" + "***File: " + args[i]+"***" + "\u001B[0m");
             try{
                 fis = new FileInputStream(args[i]);
                 MiniJavaParser parser = new MiniJavaParser(fis);
@@ -65,7 +65,7 @@ public class Main {
 
             }
             catch(ParseException ex){
-                System.out.println(ex.getMessage());
+                System.err.println(ex.getMessage());
             }
             catch(FileNotFoundException ex){
                 System.err.println(ex.getMessage());
