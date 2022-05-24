@@ -43,25 +43,25 @@ public class Main {
                 /* save the output program to a .ll file 
                 src: https://stackoverflow.com/questions/28947250/create-a-directory-if-it-does-not-exist-and-then-create-the-files-in-that-direct*/
                 
-                String directoryName = "./outputs";
-                String fileName = args[i].substring(args[i].lastIndexOf('/')+1, args[i].lastIndexOf('.')) + ".ll";
+                // String directoryName = "./outputs";
+                // String fileName = args[i].substring(args[i].lastIndexOf('/')+1, args[i].lastIndexOf('.')) + ".ll";
                 
-                File directory = new File(directoryName);
-                if (! directory.exists()){
-                    directory.mkdir();
-                }
+                // File directory = new File(directoryName);
+                // if (! directory.exists()){
+                //     directory.mkdir();
+                // }
 
-                File file = new File(directoryName + "/" + fileName);
-                try{
-                    FileWriter fw = new FileWriter(file.getAbsoluteFile());
-                    BufferedWriter bw = new BufferedWriter(fw);
-                    bw.write(output);
-                    bw.close();
-                }
-                catch (IOException e){
-                    e.printStackTrace();
-                    System.exit(-1);
-                }
+                // File file = new File(directoryName + "/" + fileName);
+                // try{
+                //     FileWriter fw = new FileWriter(file.getAbsoluteFile());
+                //     BufferedWriter bw = new BufferedWriter(fw);
+                //     bw.write(output);
+                //     bw.close();
+                // }
+                // catch (IOException e){
+                //     e.printStackTrace();
+                //     System.exit(-1);
+                // }
 
             }
             catch(ParseException ex){

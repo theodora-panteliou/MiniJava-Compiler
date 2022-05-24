@@ -1,3 +1,6 @@
+import java.util.Iterator;
+import java.util.List;
+
 import syntaxtree.*;
 import visitor.GJDepthFirst;
 
@@ -6,7 +9,6 @@ import visitor.GJDepthFirst;
 public class LLVMVisitor extends GJDepthFirst<String,String> {
     SymbolTable symbolTable = null;
     Offset offsets = null;
-    private String vtable_string = "";
     private int reg_counter = 0;
     
     private String get_reg() {
@@ -16,7 +18,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     LLVMVisitor(SymbolTable st, Offset os){
         this.symbolTable = st;
         this.offsets = os;
-        vtable_string = offsets.make_vtable(st);
+        System.out.println(offsets.make_vtable(st));
     }
 
     private String get_ir_type(String arg){
@@ -45,8 +47,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f2 -> <EOF>
     */
     public String visit(Goal n, String argu) throws Exception {
-        String _ret =
-        """
+        System.out.println("""
         \n\n
         declare i8* @calloc(i32, i32)
         declare i32 @printf(i8*, ...)
@@ -66,13 +67,12 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
             call void @exit(i32 1)
             ret void
         }
-        """;
+        """);
 
-        argu = "";
-        String main = n.f0.accept(this, argu);
-        String rest = n.f1.accept(this, argu);
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
         n.f2.accept(this, argu);
-        return vtable_string + _ret + main + rest;
+        return null;
     }
 
     /**
@@ -97,7 +97,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     */
     public String visit(MainClass n, String argu) throws Exception {
 
-        String _ret="\ndefine i32 @main() {\n";
+        System.out.println("\ndefine i32 @main() {\n");
 
         n.f1.accept(this, argu);
         n.f11.accept(this, argu);
@@ -105,8 +105,8 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         n.f14.accept(this, argu);
         n.f15.accept(this, argu);
 
-        _ret += "\n\tret i32 0\n}";
-        return _ret;
+        System.out.println("\n\tret i32 0\n}");
+        return null;
      }
 
     /**
@@ -119,15 +119,11 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     */
     public String visit(ClassDeclaration n, String argu) throws Exception {
         String _ret=null;
-        n.f1.accept(this, argu);
+        String ClassName = n.f1.accept(this, argu);
 
         n.f3.accept(this, argu);
-        String temp = n.f4.accept(this, argu);
-        if (temp != null) {
-            argu += temp;
-        }
-        System.out.println("num {" + "}\n");
-        System.out.println("here {" + argu + "}\n");
+        n.f4.accept(this, ClassName);
+        // symbolTable.get()
 
         return argu;
     }
@@ -145,16 +141,12 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     public String visit(ClassExtendsDeclaration n, String argu) throws Exception {
         String _ret=null;
 
-        n.f1.accept(this, argu);
+        String ClassName = n.f1.accept(this, argu);
 
         n.f3.accept(this, argu);
 
         n.f5.accept(this, argu);
-        String temp = n.f6.accept(this, argu);
-        if (temp != null) {
-            argu += temp;
-        }
-        System.out.println("here {" + argu + "}\n");
+        n.f6.accept(this, ClassName);
 
         return argu;
     }
@@ -169,7 +161,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         String type = n.f0.accept(this, argu);
         String name = n.f1.accept(this, argu);
         // System.out.println("x " + type);
-        argu += "%" + name + " = alloca " + get_ir_type(type);
+        System.out.println("%" + name + " = alloca " + get_ir_type(type));
         return argu;
     }
     
@@ -188,22 +180,30 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f11 -> ";"
     * f12 -> "}"
     */
-    public String visit(MethodDeclaration n, String argu) throws Exception {
-        // argu="";
-        n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
+    public String visit(MethodDeclaration n, String ClassName) throws Exception {
 
-        String params = n.f4.accept(this, argu);
-        if (params!=null){
-            argu += params;
+        n.f1.accept(this, null);
+        String MethodName = n.f2.accept(this, null);
+        
+        MethodInfo arglist = symbolTable.return_method_info(MethodName, ClassName);
+        String RetType = get_ir_type(arglist.getReturnType());
+        
+        String args = "";
+        Iterator<String> arg_names = arglist.getArgNames().iterator();
+        Iterator<String> arg_types = arglist.getArgTypes().iterator();
+        while (arg_names.hasNext() && arg_types.hasNext()) {
+            args +=  ", " + get_ir_type(arg_types.next()) + " %." + arg_names.next();
         }
-        System.out.println("\nmethoddec {\n"+argu+"}\n");
+        System.out.println("define " + RetType + " @" + ClassName + "." + MethodName + "(i8* %this" + args + ") {");
 
-        n.f7.accept(this, argu);
-        n.f8.accept(this, argu);
+        n.f4.accept(this, null);
 
-        n.f10.accept(this, argu);
-        return argu;
+        n.f7.accept(this, null);
+        n.f8.accept(this, null);
+
+        String ret = n.f10.accept(this, null); /* Expression should return the register or value. We know that the type is the correct one from type checking */
+        System.out.println("ret " + RetType + " " + ret + "}\n");
+        return null;
     }
 
     /**
@@ -211,9 +211,9 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f1 -> FormalParameterTail()
     */
     public String visit(FormalParameterList n, String argu) throws Exception {
-        argu="";
-        argu = n.f0.accept(this, argu);
-        argu += n.f1.accept(this, argu);
+        
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
         // System.out.println("\nFormalParameterList {\n"+argu+"}\n");
         return argu;
     }
@@ -222,11 +222,11 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f0 -> Type()
     * f1 -> Identifier()
     */
-    public String visit(FormalParameter n, String argu) throws Exception {
+    public String visit(FormalParameter n, String argu) throws Exception { // TODO: exclude fields
         String type = n.f0.accept(this, argu);
         String name = n.f1.accept(this, argu);
-        argu += "%" + name + " = alloca " + get_ir_type(type) + "\n";
-        argu += "store " + get_ir_type(type) + " %." + name + ", " + get_ir_type(type) + "* %" + name + "\n";
+        System.out.println("\t%" + name + " = alloca " + get_ir_type(type));
+        System.out.println("\tstore " + get_ir_type(type) + " %." + name + ", " + get_ir_type(type) + "* %" + name);
         // System.out.println("\nFormalParameter {\n"+argu+"}\n");
         return argu;
     }
@@ -235,19 +235,30 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
      * f0 -> ( FormalParameterTerm() )*
     */
     public String visit(FormalParameterTail n, String argu) throws Exception {
-        String res = n.f0.accept(this, argu);
-        if (res == null) {
-            res = "";
-        }
-        return res;
+        return n.f0.accept(this, argu);
     }
 
     /**
-     * f0 -> ","
+    * f0 -> ","
     * f1 -> FormalParameter()
     */
     public String visit(FormalParameterTerm n, String argu) throws Exception {
         return n.f1.accept(this, argu);
+    }
+
+    
+   /**
+    * f0 -> "System.out.println"
+    * f1 -> "("
+    * f2 -> Expression()
+    * f3 -> ")"
+    * f4 -> ";"
+    */
+    public String visit(PrintStatement n, String argu) throws Exception {
+
+        String res = n.f2.accept(this, argu); /* the result of the expression should be the register to which the value is loaded */
+        System.out.println("call void (i32) @print_int(i32 " + res + ")"); /* always prints ints */
+        return null;
     }
 
     /**
