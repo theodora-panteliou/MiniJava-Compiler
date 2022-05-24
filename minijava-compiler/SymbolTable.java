@@ -1,4 +1,5 @@
 import java.lang.invoke.MethodHandle;
+import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -10,18 +11,18 @@ public class SymbolTable {
     /* class returns ClassInfo */
     Map<String, ClassInfo> class_dec = new HashMap<String, ClassInfo>();
     
-    /* field->class returns VariableInfo  */
+    /* class->field returns VariableInfo  */
     Map<String, Map<String, VariableInfo>> field_in_class = new HashMap<String, Map<String, VariableInfo>>();
     
-    /* method->class returns MethodInfo */
+    /* class->method returns MethodInfo */
     Map<String, Map<String, MethodInfo>> method_in_class = new HashMap<String, Map<String, MethodInfo>>();
     
-    /* variable->method->class returns VariableInfo*/ 
+    /* class->method->variable returns VariableInfo*/ 
     Map<String, Map<String, Map<String, VariableInfo>>> var_in_method_in_class = new HashMap<String,Map<String,Map<String, VariableInfo>>>();
 
     
     public void addClassDeclaration(String ClassName) throws Exception {
-        if (class_dec.containsKey(ClassName)){
+        if (class_exists(ClassName)){
             throw new Exception("Class <"+ ClassName + "> already defined");
         }
         else {
@@ -37,10 +38,10 @@ public class SymbolTable {
         if (SuperName == null){
             addClassDeclaration(ClassName);
         }
-        else if (class_dec.containsKey(ClassName)){
+        else if (class_exists(ClassName)){
             throw new Exception("Class <"+ ClassName + "> already defined");
         }
-        else if (!class_dec.containsKey(SuperName)){
+        else if (!class_exists(SuperName)){
             throw new Exception("The superclass <"+ SuperName + "> that class <" + ClassName + "> inherits from is not defined");
         } 
         else {
@@ -50,16 +51,16 @@ public class SymbolTable {
     }
 
     public void addClassField(String FieldName, String ClassName, String Type) throws Exception { /* */
-        Map<String, VariableInfo> classes_map = field_in_class.get(FieldName);
+        Map<String, VariableInfo> classes_map = field_in_class.get(ClassName);
         if (classes_map == null){
             classes_map = new HashMap<String, VariableInfo>();
         }
-        else if (classes_map.containsKey(ClassName)){
+        else if (classes_map.containsKey(FieldName)){
             throw new Exception("Field <" + FieldName + "> already declared in class <" + ClassName + ">");
         }
         VariableInfo new_var = new VariableInfo(FieldName, Type, null, ClassName);
-        classes_map.put(ClassName, new_var);
-        field_in_class.put(FieldName, classes_map);
+        classes_map.put(FieldName, new_var);
+        field_in_class.put(ClassName, classes_map);
     }
 
     public void addClassMethod(String MethodName, String ClassName, List<String> arg_names, List<String> arg_types, String ReturnType) throws Exception {
@@ -70,31 +71,37 @@ public class SymbolTable {
         ClassInfo curr_class = class_dec.get(ClassName).getSuper();
         while (curr_class != null){
 
-            if (method_in_class.get(MethodName) == null ) break;
-            MethodInfo temp =  method_in_class.get(MethodName).get(curr_class.name());
-            if (temp != null){
-                if (!curr_method_info.equals(temp)){
-                    throw new Exception("Invalid method override in method <" + MethodName + "> in class <" + ClassName + ">. Previous definition was in class <" + curr_class.name() +">.");
-                }
-                break;
+            if (method_in_class.get(curr_class.name()) == null || method_in_class.get(curr_class.name()).get(MethodName) == null) break;
+            
+            MethodInfo temp =  method_in_class.get(curr_class.name()).get(MethodName);
+            if (!curr_method_info.equals(temp)){
+                throw new Exception("Invalid method override in method <" + MethodName + "> in class <" + ClassName + ">. Previous definition was in class <" + curr_class.name() +">.");
             }
             curr_class = curr_class.getSuper();
         }
         
-        Map<String, MethodInfo> get_class_map = method_in_class.get(MethodName);
+        /* class->method add */
+        Map<String, MethodInfo> get_class_map = method_in_class.get(ClassName);
         if (get_class_map != null){
-            MethodInfo method_info = get_class_map.get(ClassName);
+            MethodInfo method_info = get_class_map.get(MethodName);
             if (method_info != null) {
                 throw new Exception("Method <" + MethodName + "> already declared in class <" + ClassName + ">");
             }
             else {
-                get_class_map.put(ClassName, curr_method_info);
+                get_class_map.put(MethodName, curr_method_info);
+                /* add method to class */
+                ClassInfo classinfo = class_dec.get(ClassName);
+                classinfo.addMethod(ClassName, curr_method_info);
             }
         }
         else {
             get_class_map = new HashMap<String, MethodInfo>();
-            get_class_map.put(ClassName, curr_method_info);
-            method_in_class.put(MethodName, get_class_map);
+            get_class_map.put(MethodName, curr_method_info);
+            method_in_class.put(ClassName, get_class_map);
+
+            /* add method to class */
+            ClassInfo classinfo = class_dec.get(ClassName);
+            classinfo.addMethod(ClassName, curr_method_info);
         }
 
         /* now add all arguments in the variable_in_method_in_class */
@@ -110,46 +117,46 @@ public class SymbolTable {
     
         VariableInfo to_insert = new VariableInfo(VariableName, Type, MethodName, ClassName);
 
-        Map<String, MethodInfo> declared_methods_map_class = method_in_class.get(MethodName);
-        MethodInfo method = declared_methods_map_class.get(ClassName);
+        Map<String, MethodInfo> declared_methods_map_class = method_in_class.get(ClassName);
+        MethodInfo method = declared_methods_map_class.get(MethodName);
 
         /* check if method doesn't exist in methods' map: THIS SHOULD NOT HAPPEN */
         if (method == null) {
             throw new Exception("Method <" + MethodName + "> at <" + ClassName + "> not declared when trying to insert <" + VariableName + "> into Symbol Table");
         }
         
-        /* first search by VariableName in map */
-        Map<String, Map<String, VariableInfo>> first= var_in_method_in_class.get(VariableName);
+        /* first search by ClassName in map */
+        Map<String, Map<String, VariableInfo>> first= var_in_method_in_class.get(ClassName);
         if (first != null) {
             /* then by method */
             Map<String, VariableInfo> second = first.get(MethodName);
             if (second !=  null){
-                /* at last by class */
-                VariableInfo third = second.get(ClassName);
+                /* at last by VariableName */
+                VariableInfo third = second.get(VariableName);
                 if (third != null){
                     throw new Exception("Variable <" + VariableName + "> already declared in method <" + MethodName + "> in class <" + ClassName + ">");
                 }
                 else {
-                    second.put(ClassName, to_insert);
+                    second.put(VariableName, to_insert);
                     first.put(MethodName, second);
-                    var_in_method_in_class.put(VariableName, first);
+                    var_in_method_in_class.put(ClassName, first);
                 }
             }
             else { 
                 /* create second and put */
                 second = new HashMap<String, VariableInfo>();
-                second.put(ClassName, to_insert);
+                second.put(VariableName, to_insert);
                 first.put(MethodName, second);
-                var_in_method_in_class.put(VariableName, first);
+                var_in_method_in_class.put(ClassName, first);
             }
         }
         else {
             /* create first and second and put */
             first = new HashMap<String, Map<String, VariableInfo>>();
             Map<String, VariableInfo> second = new HashMap<String, VariableInfo>();
-            second.put(ClassName, to_insert);
+            second.put(VariableName, to_insert);
             first.put(MethodName, second);
-            var_in_method_in_class.put(VariableName, first);
+            var_in_method_in_class.put(ClassName, first);
         }
     
     }
@@ -164,28 +171,23 @@ public class SymbolTable {
 
         /* first search the nearest scope: variable or argument in a method */
         VariableInfo variable = null;
-        Map<String, Map<String, VariableInfo>> by_var = var_in_method_in_class.get(VariableName);
+        Map<String, Map<String, VariableInfo>> by_var = var_in_method_in_class.get(ClassName);
         if (by_var != null) {
             Map<String, VariableInfo> by_method = by_var.get(MethodName);
             if (by_method!=null) {
-                variable = by_method.get(ClassName);
+                variable = by_method.get(VariableName);
                 // System.out.println("found variable in scope searching for "+VariableName+" "+MethodName+" "+ClassName);
                 if (variable != null) return variable.getType();
             }
         }
 
-        /* search at class or superclasses */
-        /* get the map of classes that belongs to our variable name. In that map we will search for the closest superclass each time */
-        Map<String, VariableInfo> map_of_classes = field_in_class.get(VariableName);
-        if (map_of_classes == null) return null; /* case variable was not found */
-        
-        VariableInfo temp;
+        /* Type was not found inside the function, so search for fields at class or superclasses */
+     
         ClassInfo curr_class = class_dec.get(ClassName);
         while (curr_class != null){
-            temp = map_of_classes.get(curr_class.name());
             
-            if (temp!=null) {
-                return temp.getType();
+            if (field_in_class.get(curr_class.name()) != null && field_in_class.get(curr_class.name()).get(VariableName) !=null) {
+                return field_in_class.get(curr_class.name()).get(VariableName).getType();
             }
             
             curr_class = curr_class.getSuper();
@@ -194,17 +196,14 @@ public class SymbolTable {
         return null; /* case variable was not found */
     }
 
+    /*  */
     public String find_method_type(String MethodName, String ClassName, List<String> parameters) throws Exception{
-        Map<String, MethodInfo> by_method = method_in_class.get(MethodName);
-        if (by_method==null) 
-            throw new Exception("Reference to undefined method <" + MethodName + ">");
                 
         MethodInfo temp;
         ClassInfo curr_class = class_dec.get(ClassName);
         while (curr_class != null){
-            temp = by_method.get(curr_class.name());
             
-            if (temp!=null) {
+            if ( method_in_class.get(curr_class.name()) != null && (temp = method_in_class.get(curr_class.name()).get(MethodName)) != null ) {
                 /* check if method parameter expressions are the correct type */
                 if (temp.check_types(parameters, this) == false) 
                     throw new Exception("Parameter types not compatible with argument types in method "+ClassName+"."+MethodName+". Method is inherited from class <" + curr_class.name() + ">.");
@@ -215,22 +214,16 @@ public class SymbolTable {
         }
 
         /* if not found */
-        throw new Exception("Method <"+MethodName+"> doesn't exist for type <"+ ClassName + ">");
+        throw new Exception("Method <" + MethodName + "> doesn't exist for type <" + ClassName + ">");
     }
 
-    public List<String> return_method_info(String MethodName, String ClassName){
-        Map<String, MethodInfo> by_method = method_in_class.get(MethodName);
-                
+    public MethodInfo return_method_info(String MethodName, String ClassName){
         MethodInfo temp;
         ClassInfo curr_class = class_dec.get(ClassName);
         while (curr_class != null){
-            temp = by_method.get(curr_class.name());
-            
-            if (temp!=null) {
-                /* check if method parameter expressions are the correct type */
-                List<String> ret = temp.getArgTypes();
-                ret.add(0, temp.getReturnType());
-                return ret;
+
+            if (method_in_class.get(curr_class.name()) != null && (temp = method_in_class.get(curr_class.name()).get(MethodName)) != null) {
+                return temp;
             }
             
             curr_class = curr_class.getSuper();
@@ -254,6 +247,11 @@ public class SymbolTable {
         }
         return false;
     }
+
+    /* for IR representation */
+    // public String get_class_methods(){
+
+    // }
 
 }
 
@@ -294,6 +292,10 @@ class MethodInfo { /* holds all information for the method */
 
     public List<String> getArgTypes(){
         return arg_types;
+    }
+
+    public List<String> getArgNames(){
+        return arg_names;
     }
 
     public boolean check_types(List<String> parameters_types, SymbolTable sTable) {

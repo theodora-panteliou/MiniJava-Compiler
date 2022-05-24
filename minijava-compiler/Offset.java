@@ -101,12 +101,11 @@ public class Offset {
                 String temp = "";
 
                 for (String method: method_offsets.get(curr).keySet()){
-                    List<String> arglist = st.return_method_info(method, curr);
-                    String ret_type = get_ir_type(arglist.get(0));
+                    MethodInfo arglist = st.return_method_info(method, curr);
+                    String ret_type = get_ir_type(arglist.getReturnType());
                     
                     String arg_types = "";
-                    Iterator<String> args = arglist.iterator();
-                    args.next();
+                    Iterator<String> args = arglist.getArgTypes().iterator();
                     while (args.hasNext()) {
                         arg_types += "," + get_ir_type(args.next());
                     }
