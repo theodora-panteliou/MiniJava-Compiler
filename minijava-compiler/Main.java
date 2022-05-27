@@ -35,7 +35,7 @@ public class Main {
                 root.accept(eval2, null);
                 
                 System.err.println("Program is semantically correct.\n");
-                eval.offset.print(); /* print offsets */
+                // eval.offset.print(); /* print offsets */
 
                 LLVMVisitor compile = new LLVMVisitor(eval.symbolTable, eval.offset);
                 String output = root.accept(compile, null);

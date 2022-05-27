@@ -26,4 +26,4 @@ define void @throw_oob() {
 define i32 @main() {
 
 	ret i32 0
-}
+}null

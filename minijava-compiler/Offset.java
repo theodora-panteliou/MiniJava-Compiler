@@ -20,6 +20,8 @@ public class Offset {
     Map<String, Integer> last_field_offset = new HashMap<String, Integer>();  
     Map<String, Integer> last_method_offset = new HashMap<String, Integer>();  
 
+    Map<String, String> vtable_classes = new HashMap<String, String>(); /* for allocation expressions */
+
     public void add_main(String name){
         main_class = name;
     }
@@ -121,9 +123,26 @@ public class Offset {
             else {
                 vtable += methods_str.substring(0, methods_str.length() - 2) + "]\n";
             }
+
+            /* keep the information needed for new so we don't need to calculate it every time */
+            vtable_classes.put(classname, "getelementptr [" + size + " x i8*], [" + size + " x i8*]* @."+ classname + "_vtable, i32 0, i32 0");
         }
 
         return vtable;
+    }
+
+    public int find_offset(String ClassName, String MethodName) {
+        /* check if method exists in any superclass */
+        String curr = ClassName;
+        while (curr!=null) {
+            if (method_offsets.get(curr) != null && method_offsets.get(curr).get(MethodName) != null){ return method_offsets.get(curr).get(MethodName);}
+            curr = inherit.get(curr);
+        }
+        return -1;
+    }
+
+    public String get_allocation_str(String ClassName) {
+        return vtable_classes.get(ClassName);
     }
 
     private String get_ir_type(String arg){
