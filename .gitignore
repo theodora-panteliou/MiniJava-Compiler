@@ -33,3 +33,5 @@ minijava-compiler/MiniJavaParserTokenManager.java
 minijava-compiler/ParseException.java
 minijava-compiler/Token.java
 minijava-compiler/TokenMgrError.java
+
+minijava-compiler/*out*

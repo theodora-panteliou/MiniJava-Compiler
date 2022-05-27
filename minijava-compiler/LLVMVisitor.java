@@ -13,6 +13,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     SymbolTable symbolTable = null;
     Offset offsets = null;
     private int reg_counter = 0;
+    private int if_label_counter = 0;
     String currClass = null;
     String currMethod = null;
     String currReg;
@@ -22,6 +23,10 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     private String get_reg() {
         currReg = "%_"+reg_counter++;
         return currReg;
+    }
+
+    private String get_if_label() {
+        return "if" + if_label_counter++ ;
     }
 
     private void reset_reg() {
@@ -431,11 +436,11 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f2 -> PrimaryExpression()
     */
     public String visit(CompareExpression n, String argu) throws Exception {
-        String _ret=null;
-        n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
-        return _ret;
+        String reg1 = n.f0.accept(this, argu);
+        String reg2 = n.f2.accept(this, argu);
+        String reg = get_reg();
+        System.out.println("\t" + reg + " = icmp slt i32 "+reg1+", " + reg2);
+        return reg;
     }
 
     /**
@@ -444,11 +449,11 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f2 -> PrimaryExpression()
     */
     public String visit(PlusExpression n, String argu) throws Exception {
-        String _ret=null;
-        n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
-        return _ret;
+        String reg1 = n.f0.accept(this, argu);
+        String reg2 = n.f2.accept(this, argu);
+        String reg = get_reg();
+        System.out.println("\t" + reg + " = add i32 "+reg1+", " + reg2);
+        return reg;
     }
 
     /**
@@ -457,11 +462,11 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f2 -> PrimaryExpression()
     */
     public String visit(MinusExpression n, String argu) throws Exception {
-        String _ret=null;
-        n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
-        return _ret;
+        String reg1 = n.f0.accept(this, argu);
+        String reg2 = n.f2.accept(this, argu);
+        String reg = get_reg();
+        System.out.println("\t" + reg + " = sub i32 "+reg1+", " + reg2);
+        return reg;
     }
 
     /**
@@ -470,11 +475,11 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f2 -> PrimaryExpression()
     */
     public String visit(TimesExpression n, String argu) throws Exception {
-        String _ret=null;
-        n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
-        return _ret;
+        String reg1 = n.f0.accept(this, argu);
+        String reg2 = n.f2.accept(this, argu);
+        String reg = get_reg();
+        System.out.println("\t" + reg + " = mul i32 "+reg1+", " + reg2);
+        return reg;
     }
 
     /**
@@ -659,16 +664,41 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     }
 
     /**
-     * f0 -> "("
+    * f0 -> "("
     * f1 -> Expression()
     * f2 -> ")"
     */
     public String visit(BracketExpression n, String argu) throws Exception {
-        String _ret=null;
-        n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
-        return _ret;
+        return n.f1.accept(this, argu);
+    }
+
+    /**
+    * f0 -> "if"
+    * f1 -> "("
+    * f2 -> Expression()
+    * f3 -> ")"
+    * f4 -> Statement()
+    * f5 -> "else"
+    * f6 -> Statement()
+    */
+    public String visit(IfStatement n, String argu) throws Exception {
+
+        String expr_reg = n.f2.accept(this, null);
+        String then = get_if_label();
+        String elsel = get_if_label();
+        String out = get_if_label();
+        System.out.println("\tbr i1 " + expr_reg + ", label %"+then+", label %" + elsel);
+        
+        System.out.println(then+":");
+        n.f4.accept(this, null);
+        System.out.println("\tbr label %" + out);
+
+        System.out.println(elsel+":");
+        n.f6.accept(this, null);
+        System.out.println("\tbr label %" + out);
+
+        System.out.println(out+":");
+        return null;
     }
 
     /**
