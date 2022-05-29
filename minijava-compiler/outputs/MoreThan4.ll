@@ -30,9 +30,9 @@ define i32 @main() {
 	%_1 = bitcast i8* %_0 to i8***
 	%_2 = getelementptr [2 x i8*], [2 x i8*]* @.MT4_vtable, i32 0, i32 0
 	store i8** %_2, i8*** %_1
+	; MT4.Start : 0
 	%_3 = bitcast i8* %_0 to i8***
 	%_4 = load i8**, i8*** %_3
-	; MT4.Start : 0
 	%_5 = getelementptr i8*, i8** %_4, i32 0
 	%_6 = load i8*, i8** %_5
 	%_7 = bitcast i8* %_6 to i32 (i8*,i32,i32,i32,i32,i32,i32)*
@@ -75,9 +75,9 @@ define i32 @MT4.Start(i8* %this, i32 %.p1, i32 %.p2, i32 %.p3, i32 %.p4, i32 %.p
 	%_5 = load i32, i32* %p6
 	call void (i32) @print_int(i32 %_5)
 
+	; MT4.Change : 1
 	%_6 = bitcast i8* %this to i8***
 	%_7 = load i8**, i8*** %_6
-	; MT4.Change : 1
 	%_8 = getelementptr i8*, i8** %_7, i32 1
 	%_9 = load i8*, i8** %_8
 	%_10 = bitcast i8* %_9 to i32 (i8*,i32,i32,i32,i32,i32,i32)*
