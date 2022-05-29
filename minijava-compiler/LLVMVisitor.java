@@ -138,14 +138,15 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
 
         System.out.println("\ndefine i32 @main() {\n");
 
-        n.f1.accept(this, argu);
-        currClass = "main";
+        currClass = n.f1.accept(this, null);
+        currMethod = n.f6.toString();
         n.f11.accept(this, argu);
 
         n.f14.accept(this, argu);
         n.f15.accept(this, argu);
 
         System.out.println("\n\tret i32 0\n}\n");
+        currMethod = null;
         currClass = null;
         reset_reg();
         return null;
@@ -349,7 +350,6 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f5 -> ")"
     */
     public String visit(MessageSend n, String argu) throws Exception {
-        // String type = n.f0.accept(this, "type");
         String res_reg = n.f0.accept(this, "Expression");
         String type = currType;
         // System.err.println(type);
@@ -472,6 +472,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
             reg = "%" + reg;
         }
         String name = n.f0.accept(this, null); /* get name */
+
         String type = get_ir_type(symbolTable.find_type_in_scope(name, currMethod, currClass));
         // System.out.println(type);
         System.out.println("\tstore " + type + " " + expr_reg + ", " + type + "* " + reg);
@@ -500,7 +501,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         new_reg = get_reg();
 
         /* compare size of array with index */
-        System.out.println(new_reg + " = load i32*, i32** " + array);
+        System.out.println("\t" + new_reg + " = load i32*, i32** " + array);
         prev_reg = new_reg;
         array = new_reg;
         new_reg = get_reg();
@@ -763,14 +764,8 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
             // String type = get_ir_type(symbolTable.find_type_in_scope(name, currMethod, currClass));
             // String reg = get_reg();
             // System.out.println("\t" + reg + " = load " + type + ", " + type + "* %"+name);
-            return name;
+            return "%" + name;
         } 
-        else if (argu == "type"){
-            // String type = get_ir_type(symbolTable.find_type_in_scope(name, currMethod, currClass));
-            // String reg = get_reg();
-            // System.out.println("\t" + reg + " = load " + type + ", " + type + "* %"+name);
-            return symbolTable.find_type_in_scope(name, currMethod, currClass);
-        }
         else {
             return name;
         }
@@ -782,15 +777,12 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     public String visit(ThisExpression n, String argu) throws Exception {
         /* this refers to current object. It is used inside String function, inside String class so current class is its type */
         currType = currClass;
-        if (argu=="type"){
-            return currClass;
-        }
-        else {
-            // String reg = get_reg();
-            // System.out.println("\t" + reg + " = bitcast i8* %this to i8***");
-            // System.out.println("\t" + get_reg() + " = load i8**, i8*** " + reg);
-            return "%this";
-        }
+
+        // String reg = get_reg();
+        // System.out.println("\t" + reg + " = bitcast i8* %this to i8***");
+        // System.out.println("\t" + get_reg() + " = load i8**, i8*** " + reg);
+        return "%this";
+ 
     }
 
     /**
@@ -857,24 +849,20 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     public String visit(AllocationExpression n, String argu) throws Exception {
         String id_name = n.f1.accept(this, null);
 
-        if (argu == "type"){
-            return id_name;
-        }
-        else {
-            String new_reg = get_reg();
-            String calloc_reg = new_reg;
+        String new_reg = get_reg();
+        String calloc_reg = new_reg;
 
-            System.out.println("\t" + new_reg + " = call i8* @calloc(i32 1, i32 " + (offsets.last_field_offset.get(id_name) + 8) + ")");
-            String prev_reg = new_reg;
-            new_reg = get_reg();
-            System.out.println("\t" +new_reg + " = bitcast i8* " + prev_reg + " to i8***");
-            prev_reg = new_reg;
-            new_reg = get_reg();
-            System.out.println("\t" +new_reg + " = " + offsets.get_allocation_str(id_name));
-            System.out.println("\t" +"store i8** " + new_reg + ", i8*** " + prev_reg);
-            currType = id_name;
-            return calloc_reg;
-        }
+        System.out.println("\t" + new_reg + " = call i8* @calloc(i32 1, i32 " + (offsets.last_field_offset.get(id_name) + 8) + ")");
+        String prev_reg = new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" +new_reg + " = bitcast i8* " + prev_reg + " to i8***");
+        prev_reg = new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" +new_reg + " = " + offsets.get_allocation_str(id_name));
+        System.out.println("\t" +"store i8** " + new_reg + ", i8*** " + prev_reg);
+        currType = id_name;
+        return calloc_reg;
+
     }
 
     /**

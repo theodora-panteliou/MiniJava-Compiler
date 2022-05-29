@@ -1,9 +1,14 @@
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.Map.Entry;
 import java.util.Iterator;
-
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class Offset {
 
@@ -66,7 +71,7 @@ public class Offset {
         /* check if method exists in any superclass */
         String curr = curr_class;
         while (curr!=null) {
-            if (method_offsets.get(curr) != null && method_offsets.get(curr).get(name) != null){ return;}
+            if (method_offsets.get(curr) != null && method_offsets.get(curr).get(name) != null){ method_offsets.get(curr_class).put(name, method_offsets.get(curr).get(name)); return;}
             curr = inherit.get(curr);
         } 
 
@@ -94,28 +99,38 @@ public class Offset {
         String vtable = "";
         /* add main */
         vtable += "@."+ main_class + "_vtable = global [0 x i8*] []\n";
-        for (String classname: field_offsets.keySet()){
+        for (String classname: method_offsets.keySet()){
             int size = 0;
             String curr = classname;
             String methods_str = "";
-            while (curr!=null){
-                size += method_offsets.get(curr).size();
-                String temp = "";
-
-                for (String method: method_offsets.get(curr).keySet()){
-                    MethodInfo arglist = st.return_method_info(method, curr);
-                    String ret_type = get_ir_type(arglist.getReturnType());
-                    
-                    String arg_types = "";
-                    Iterator<String> args = arglist.getArgTypes().iterator();
-                    while (args.hasNext()) {
-                        arg_types += "," + get_ir_type(args.next());
+            Map<String, Integer> allmethods = new HashMap<>(); /* keeps all methods that will end up in vtable */
+            Map<String, String> method_to_class = new HashMap<>(); /* keeps in which class the method belongs */
+            while (curr!=null){ /* search superclasses and gather all methods from derived to superclass. If a method is implemented in derived it won't be added for superclasses */
+                for (Map.Entry<String, Integer> method: method_offsets.get(curr).entrySet()){
+                    if (!allmethods.containsKey(method.getKey())){
+                        allmethods.put(method.getKey(), method.getValue()); 
+                        method_to_class.put(method.getKey(), curr);
                     }
-                    temp +=  "i8* bitcast (" + ret_type + " (i8*" + arg_types + ")* @" + classname + "." + method + " to i8*), ";
                 }
-                methods_str = temp + methods_str;
                 curr = inherit.get(curr);
             }
+
+            /* sort by offset and make vtable */
+            List<Entry<String, Integer>> sorted = allmethods.entrySet().stream().sorted(Map.Entry.comparingByValue()).toList();
+            for (Entry<String, Integer> pair: sorted){
+                String method = pair.getKey();
+                MethodInfo arglist = st.return_method_info(method, method_to_class.get(method));
+                String ret_type = get_ir_type(arglist.getReturnType());
+                
+                String arg_types = "";
+                Iterator<String> args = arglist.getArgTypes().iterator();
+                while (args.hasNext()) {
+                    arg_types += "," + get_ir_type(args.next());
+                }
+                methods_str +=  "i8* bitcast (" + ret_type + " (i8*" + arg_types + ")* @" + method_to_class.get(method) + "." + method + " to i8*), ";
+            }
+
+            size = sorted.size();
             vtable += "@."+ classname + "_vtable = global [" + size + " x i8*] [";
             if (methods_str.length() < 2){
                 vtable += "]\n";
