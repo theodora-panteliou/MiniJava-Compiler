@@ -176,7 +176,6 @@ public class SymbolTable {
             Map<String, VariableInfo> by_method = by_var.get(MethodName);
             if (by_method!=null) {
                 variable = by_method.get(VariableName);
-                // System.out.println("found variable in scope searching for "+VariableName+" "+MethodName+" "+ClassName);
                 if (variable != null) return variable.getType();
             }
         }
@@ -208,7 +207,6 @@ public class SymbolTable {
             Map<String, VariableInfo> by_method = by_var.get(MethodName);
             if (by_method!=null) {
                 variable = by_method.get(VariableName);
-                // System.out.println("found variable in scope searching for "+VariableName+" "+MethodName+" "+ClassName);
                 if (variable != null) return false;
             }
         }
@@ -280,12 +278,6 @@ public class SymbolTable {
         }
         return false;
     }
-
-    /* for IR representation */
-    // public String get_class_methods(){
-
-    // }
-
 }
 
 class MethodInfo { /* holds all information for the method */
