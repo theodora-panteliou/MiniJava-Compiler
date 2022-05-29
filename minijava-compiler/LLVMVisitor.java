@@ -14,6 +14,9 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     Offset offsets = null;
     private int reg_counter = 0;
     private int if_label_counter = 0;
+    private int loop_label_counter = 0;
+    private int arr_label_counter = 0;
+    private int oob_label_counter = 0;
     String currClass = null;
     String currMethod = null;
     String currReg;
@@ -25,12 +28,24 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         return currReg;
     }
 
+    private void reset_reg() {
+        reg_counter=0;
+    }
+
     private String get_if_label() {
         return "if" + if_label_counter++ ;
     }
+    
+    private String get_loop_label() {
+        return "loop" + loop_label_counter++ ;
+    }
 
-    private void reset_reg() {
-        reg_counter=0;
+    private String get_arr_label() {
+        return "arr_alloc" + arr_label_counter++ ;
+    }
+
+    private String get_oob_label() {
+        return "oob" + oob_label_counter++ ;
     }
 
     LLVMVisitor(SymbolTable st, Offset os){
@@ -183,12 +198,13 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f2 -> ";"
     */
     public String visit(VarDeclaration n, String argu) throws Exception {
-        String _ret=null;
-        String type = n.f0.accept(this, argu);
-        String name = n.f1.accept(this, argu);
-        // System.out.println("x " + type);
-        System.out.println("\t%" + name + " = alloca " + get_ir_type(type));
-        return argu;
+        if (currMethod!=null && currClass!=null) {
+            String type = n.f0.accept(this, argu);
+            String name = n.f1.accept(this, argu);
+            // System.out.println("x " + type);
+            System.out.println("\t%" + name + " = alloca " + get_ir_type(type));
+        }
+        return null;
     }
     
     /**
@@ -276,7 +292,32 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         return n.f1.accept(this, argu);
     }
 
-    
+    /**
+    * f0 -> "while"
+    * f1 -> "("
+    * f2 -> Expression()
+    * f3 -> ")"
+    * f4 -> Statement()
+    */
+    public String visit(WhileStatement n, String argu) throws Exception {
+        String calc_expr = get_loop_label();
+        String loopstart = get_loop_label();
+        String out = get_loop_label();
+
+        System.out.println("\tbr label %" + calc_expr);
+        System.out.println(calc_expr + ":");
+        String expr_reg = n.f2.accept(this, argu);
+        System.out.println("\tbr i1 " + expr_reg + ", label %" + loopstart + ", label %" + out);
+        
+        System.out.println(loopstart + ":");
+        n.f4.accept(this, argu);
+        System.out.println("\tbr label %" + calc_expr);
+
+        System.out.println(out + ":");
+
+        return null;
+    }
+
    /**
     * f0 -> "System.out.println"
     * f1 -> "("
@@ -306,7 +347,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         String res_reg = n.f0.accept(this, null);
         String method_name = n.f2.accept(this, "name"); /* pass this to Identifier so it knows we need the name and not the type */
 
-        int offset = offsets.find_offset(type, method_name)/8;
+        int offset = offsets.find_method_offset(type, method_name)/8;
         System.out.println("\t; " + type + "." + method_name + " : " + offset);
         String primary_res = currReg;
         String method_ptr = get_reg();
@@ -410,14 +451,77 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f3 -> ";"
     */
     public String visit(AssignmentStatement n, String argu) throws Exception {
-        String name = n.f0.accept(this, "AssignmentStatement"); /* get name */
+        String reg = n.f0.accept(this, "lvalue"); /* get reg if id is field or name if id is variable */
+        if (reg.startsWith("%")==false) {
+            reg = "%" + reg;
+        }
+        String name = n.f0.accept(this, null); /* get name */
         String expr_reg = n.f2.accept(this, null);
         String type = get_ir_type(symbolTable.find_type_in_scope(name, currMethod, currClass));
-        System.out.println("\tstore " + type + " " + expr_reg + ", " + type + "* %" + name);
+        // System.out.println(type);
+        System.out.println("\tstore " + type + " " + expr_reg + ", " + type + "* " + reg);
         return null;
     }
 
-       /**
+    /**
+    * f0 -> Identifier()
+    * f1 -> "["
+    * f2 -> Expression()
+    * f3 -> "]"
+    * f4 -> "="
+    * f5 -> Expression()
+    * f6 -> ";"
+    */
+    public String visit(ArrayAssignmentStatement n, String argu) throws Exception {
+        String _ret=null;
+
+        String array = n.f0.accept(this, "lvalue");
+        String index = n.f2.accept(this, argu);
+
+        String labelok = get_oob_label();
+        String labeloob = get_oob_label();
+        String labelout = get_oob_label();
+        String new_reg, prev_reg;
+        new_reg = get_reg();
+
+        /* compare size of array with index */
+        System.out.println(new_reg + " = load i32*, i32** " + array);
+        prev_reg = new_reg;
+        array = new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = load i32, i32 *" + prev_reg);
+        prev_reg = new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = icmp ult i32 " + index + ", " + prev_reg);
+        System.out.println("\tbr i1 " + new_reg + ", label %" + labelok + ", label %" + labeloob );
+
+        /* if size is in bounds */
+        System.out.println(labelok+":");
+        prev_reg = new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = add i32 " + index + ", 1");
+        prev_reg = new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = getelementptr i32, i32* " + array + ", i32 " + prev_reg);
+
+        /* assign */
+        String value = n.f5.accept(this, argu);
+        System.out.println("\tstore i32 " + value + ", i32* " + new_reg);
+
+        System.out.println("\tbr label %" + labelout);
+
+        /* if size is out of bounds */
+        System.out.println(labeloob+":");
+        System.out.println("\tcall void @throw_oob()\n\tbr label %" + labelout);
+
+        /* out */
+        System.out.println(labelout+":");
+
+
+        return _ret;
+    }
+
+    /**
     * f0 -> Clause()
     * f1 -> "&&"
     * f2 -> Clause()
@@ -489,12 +593,44 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f3 -> "]"
     */
     public String visit(ArrayLookup n, String argu) throws Exception {
-        String _ret=null;
-        n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
-        n.f3.accept(this, argu);
-        return _ret;
+        String array = n.f0.accept(this, argu);
+
+        String index = n.f2.accept(this, argu);
+
+        String labelok = get_oob_label();
+        String labeloob = get_oob_label();
+        String labelout = get_oob_label();
+        String new_reg, prev_reg;
+        new_reg = get_reg();
+
+        /* compare size of array with index */
+        System.out.println("\t" + new_reg + " = load i32, i32 *" + array);
+        prev_reg = new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = icmp ult i32 " + index + ", " + prev_reg);
+        System.out.println("\tbr i1 " + new_reg + ", label %" + labelok + ", label %" + labeloob );
+
+        /* if size is in bounds */
+        System.out.println(labelok+":");
+        prev_reg = new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = add i32 " + index + ", 1");
+        prev_reg = new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = getelementptr i32, i32* " + array + ", i32 " + prev_reg);
+        prev_reg = new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = load i32, i32* " + prev_reg);
+
+        System.out.println("\tbr label %" + labelout);
+
+        /* if size is out of bounds */
+        System.out.println(labeloob+":");
+        System.out.println("\tcall void @throw_oob()\n\tbr label %" + labelout);
+
+        /* out */
+        System.out.println(labelout+":");
+        return new_reg;
     }
 
     /**
@@ -535,14 +671,14 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
      * f0 -> "true"
     */
     public String visit(TrueLiteral n, String argu) throws Exception {
-        return n.f0.accept(this, argu); //TODOL maybe 1?
+        return "1";
     }
 
     /**
      * f0 -> "false"
     */
     public String visit(FalseLiteral n, String argu) throws Exception {
-        return n.f0.accept(this, argu); //TODOL maybe 1?
+        return "0";
     }
 
     /**
@@ -550,11 +686,48 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     */
     public String visit(Identifier n, String argu) throws Exception {
         String name = n.f0.toString();
-        if (argu == "Expression"){
+        // System.out.println("IN ID " + currClass + currMethod + name + symbolTable.is_field(name, currMethod, currClass));
+        
+        if (argu == "Expression" && currClass!=null && currMethod!=null && symbolTable.is_field(name, currMethod, currClass)==true){
+           
+                int offset = offsets.find_field_offset(currClass, name)+8;
+                String type = get_ir_type(symbolTable.find_type_in_scope(name, currMethod, currClass));
+    
+                String new_reg, prev_reg;
+                new_reg = get_reg();
+                System.out.println("\t" +new_reg + " = getelementptr i8, i8* %this, i32 " + offset);
+                prev_reg = new_reg;
+                new_reg = get_reg();
+                System.out.println("\t" +new_reg + " = bitcast i8* " + prev_reg + " to " + type + "*");
+                prev_reg = new_reg;
+                new_reg = get_reg();
+                System.out.println("\t" +new_reg + " = load " + type + ", " + type + "* " + prev_reg);
+                return new_reg;
+        }
+        else if (argu == "Expression"){
             String type = get_ir_type(symbolTable.find_type_in_scope(name, currMethod, currClass));
             String reg = get_reg();
             System.out.println("\t" + reg + " = load " + type + ", " + type + "* %"+name);
             return reg;
+            
+        }
+        else if (argu == "lvalue" && currClass!=null && currMethod!=null && symbolTable.is_field(name, currMethod, currClass)==true ){
+            int offset = offsets.find_field_offset(currClass, name)+8;
+
+            String new_reg, prev_reg;
+            new_reg = get_reg();
+            String type = get_ir_type(symbolTable.find_type_in_scope(name, currMethod, currClass));
+            System.out.println("\t" +new_reg + " = getelementptr i8, i8* %this, i32 " + offset);
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" +new_reg + " = bitcast i8* " + prev_reg + " to " + type + "*"); //TODO is i8* the correct bitcast?
+            return new_reg;
+        }
+        else if (argu == "lvalue"){
+            // String type = get_ir_type(symbolTable.find_type_in_scope(name, currMethod, currClass));
+            // String reg = get_reg();
+            // System.out.println("\t" + reg + " = load " + type + ", " + type + "* %"+name);
+            return name;
         }
         else {
             return name;
@@ -593,13 +766,8 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f4 -> "]"
     */
     public String visit(BooleanArrayAllocationExpression n, String argu) throws Exception {
-        String _ret=null;
-        n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
-        n.f3.accept(this, argu);
-        n.f4.accept(this, argu);
-        return _ret;
+        n.f3.accept(this, null);
+        return null;
     }
 
     /**
@@ -610,13 +778,31 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f4 -> "]"
     */
     public String visit(IntegerArrayAllocationExpression n, String argu) throws Exception {
-        String _ret=null;
-        n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
-        n.f3.accept(this, argu);
-        n.f4.accept(this, argu);
-        return _ret;
+        String reg_expr = n.f3.accept(this, argu);
+        String new_reg, prev_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = icmp slt i32 " + reg_expr + ", 0");
+        String labeloob = get_arr_label();
+        String labelcont = get_arr_label();
+
+        System.out.println("\t" + "br i1 " + new_reg + ", label %" + labeloob + ", label %" + labelcont);
+        System.out.println(labeloob + ":");
+        System.out.println("\t" + "call void @throw_oob()");
+        System.out.println("\t" + "br label %" + labelcont);
+
+        System.out.println(labelcont + ":");
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = add i32 " + reg_expr + ", 1");
+        prev_reg= new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = call i8* @calloc(i32 4, i32 " + prev_reg + ")");
+        prev_reg= new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = bitcast i8* "+ prev_reg+ " to i32*");
+
+        System.out.println("\tstore i32 " + reg_expr + ", i32* " + new_reg);
+
+        return new_reg;
     }
 
     /**
@@ -657,10 +843,10 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f1 -> Clause()
     */
     public String visit(NotExpression n, String argu) throws Exception {
-        String _ret=null;
-        n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
-        return _ret;
+        String reg = get_reg();
+        String clause = n.f1.accept(this, argu);
+        System.out.println("\t" + reg + " = xor i1 1, " + clause);
+        return reg;
     }
 
     /**

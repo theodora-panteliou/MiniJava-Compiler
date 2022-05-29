@@ -196,6 +196,39 @@ public class SymbolTable {
         return null; /* case variable was not found */
     }
 
+    boolean is_field(String VariableName, String MethodName, String ClassName) {
+        
+        /* variable in a scope (MethodName, ClassName) can be declared inside the Method, as argument 
+        to the Method, as Field in Class or a Field in superclass */
+
+        /* first search the nearest scope: variable or argument in a method */
+        VariableInfo variable = null;
+        Map<String, Map<String, VariableInfo>> by_var = var_in_method_in_class.get(ClassName);
+        if (by_var != null) {
+            Map<String, VariableInfo> by_method = by_var.get(MethodName);
+            if (by_method!=null) {
+                variable = by_method.get(VariableName);
+                // System.out.println("found variable in scope searching for "+VariableName+" "+MethodName+" "+ClassName);
+                if (variable != null) return false;
+            }
+        }
+
+        /* Type was not found inside the function, so search for fields at class or superclasses */
+     
+        ClassInfo curr_class = class_dec.get(ClassName);
+        while (curr_class != null){
+            
+            if (field_in_class.get(curr_class.name()) != null && field_in_class.get(curr_class.name()).get(VariableName) !=null) {
+                return true;
+            }
+            
+            curr_class = curr_class.getSuper();
+        }
+
+        return false; /* case variable was not found */
+    }
+
+
     /*  */
     public String find_method_type(String MethodName, String ClassName, List<String> parameters) throws Exception{
                 

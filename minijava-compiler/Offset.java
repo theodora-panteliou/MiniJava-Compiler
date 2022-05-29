@@ -131,11 +131,21 @@ public class Offset {
         return vtable;
     }
 
-    public int find_offset(String ClassName, String MethodName) {
+    public int find_method_offset(String ClassName, String MethodName) {
         /* check if method exists in any superclass */
         String curr = ClassName;
         while (curr!=null) {
             if (method_offsets.get(curr) != null && method_offsets.get(curr).get(MethodName) != null){ return method_offsets.get(curr).get(MethodName);}
+            curr = inherit.get(curr);
+        }
+        return -1;
+    }
+
+    public int find_field_offset(String ClassName, String FieldName) {
+        /* check if variable exists in any superclass */
+        String curr = ClassName;
+        while (curr!=null) {
+            if (field_offsets.get(curr) != null && field_offsets.get(curr).get(FieldName) != null){ return field_offsets.get(curr).get(FieldName);}
             curr = inherit.get(curr);
         }
         return -1;
