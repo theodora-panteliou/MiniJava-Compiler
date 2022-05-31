@@ -24,6 +24,9 @@ define void @throw_oob() {
     ret void
 }
 
+%_BooleanArray = type { i32, i1* }
+%_IntegerArray = type { i32, i32* }
+
 
 define i32 @main() {
 

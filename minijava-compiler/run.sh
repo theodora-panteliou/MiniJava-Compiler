@@ -7,12 +7,13 @@ SUCCESS="\e[32m"
 RESET="\e[0m"
 
 make
-search_dir="./examples/minijava-extra/"
-# search_dir="./examples/"
+# search_dir="./examples/minijava-extra/"
+search_dir="./examples/"
 # for search_dir in ["./examples/" "./examples/minijava-extra/"]
 # do
     for i in "$search_dir"*
     do  
+    # i="LinearSearch.java"
         if [[ "$i" == *".java" && "$i" != *"error"* ]]; then
             # echo "$i"
             name=${i//${search_dir}/outputs/} 
@@ -24,7 +25,7 @@ search_dir="./examples/minijava-extra/"
             out="$(javac "$i" 2>&1 > javaerror)"
             if [ "$(javac "$i" 2>&1 > javaerror)" ]; then
                 echo -e "${FAIL}java compiler not compiling with error $out${RESET}"
-                continue
+                # continue
             fi
             java "$i" > javaout.txt 
             diff javaout.txt llvmout.txt

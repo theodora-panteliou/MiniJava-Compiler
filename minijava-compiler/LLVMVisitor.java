@@ -21,6 +21,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     String currClass = null;
     String currMethod = null;
     String currReg;
+    String array_type = null;
     ArrayList<List<String>> expression_list = new ArrayList<List<String>>(); /* expression_list works as a stack. It keeps the lists of expression lists for ExpressionList to allow nested ExpressionLists */
 
     String currType = null;
@@ -69,10 +70,10 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
             type = "i1";
         }
         else if (arg.equals("int[]")){
-            type = "i32*";
+            type = "%_IntegerArray";
         }
         else if (arg.equals("boolean[]")){
-            type = "i1*";
+            type = "%_BooleanArray";
         }
         else { /* class object */
             type = "i8*";
@@ -106,6 +107,9 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
             call void @exit(i32 1)
             ret void
         }
+
+        %_BooleanArray = type { i32, i1* }
+        %_IntegerArray = type { i32, i32* }
         """);
 
         n.f0.accept(this, argu);
@@ -491,11 +495,13 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         new_reg = get_reg();
 
         /* compare size of array with index */
-        System.out.println("\t" + new_reg + " = load i32*, i32** " + array);
+        /* get size */
+        System.err.println(array_type);
+        System.out.println("\t" + new_reg + " = getelementptr " + array_type + ", " + array_type + "* "+ array + ", i32 0, i32 0");
         prev_reg = new_reg;
-        array = new_reg;
         new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = load i32, i32 *" + prev_reg);
+        System.out.println("\t" + new_reg + " = load i32, i32* " + prev_reg);
+
         prev_reg = new_reg;
         new_reg = get_reg();
         System.out.println("\t" + new_reg + " = icmp ult i32 " + index + ", " + prev_reg);
@@ -505,10 +511,13 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         System.out.println(labelok+":");
         prev_reg = new_reg;
         new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = add i32 " + index + ", 1");
+        System.out.println("\t" + new_reg + " = getelementptr " + array_type + ", " + array_type + "* "+ array + ", i32 0, i32 1");
         prev_reg = new_reg;
         new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = getelementptr i32, i32* " + array + ", i32 " + prev_reg);
+        System.out.println("\t" + new_reg + " = load i32*, i32** " + prev_reg);
+        prev_reg = new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = getelementptr i32, i32* "+ prev_reg + ", i32 " + index);
 
         /* assign */
         String value = n.f5.accept(this, argu);
@@ -632,7 +641,11 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         new_reg = get_reg();
 
         /* compare size of array with index */
-        System.out.println("\t" + new_reg + " = load i32, i32 *" + array);
+        System.err.println(array_type);
+        System.out.println("\t" + new_reg + " = getelementptr " + array_type + ", " + array_type + "* "+ array + ", i32 0, i32 0");
+        prev_reg = new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = load i32, i32* " + prev_reg);
         prev_reg = new_reg;
         new_reg = get_reg();
         System.out.println("\t" + new_reg + " = icmp ult i32 " + index + ", " + prev_reg);
@@ -642,14 +655,18 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         System.out.println(labelok+":");
         prev_reg = new_reg;
         new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = add i32 " + index + ", 1");
+        /* get array */
+        System.err.println(array_type);
+        System.out.println("\t" + new_reg + " = getelementptr " + array_type + ", " + array_type + "* "+ array + ", i32 0, i32 1");
         prev_reg = new_reg;
         new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = getelementptr i32, i32* " + array + ", i32 " + prev_reg);
+        System.out.println("\t" + new_reg + " = load i32*, i32** " + prev_reg);
+        prev_reg = new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = getelementptr i32, i32* "+ prev_reg + ", i32 "+ index);
         prev_reg = new_reg;
         new_reg = get_reg();
         System.out.println("\t" + new_reg + " = load i32, i32* " + prev_reg);
-
         System.out.println("\tbr label %" + labelout);
 
         /* if size is out of bounds */
@@ -684,7 +701,10 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     *       | BracketExpression()
     */
     public String visit(PrimaryExpression n, String argu) throws Exception {
-        return n.f0.accept(this, argu);
+        String _ret = n.f0.accept(this, argu);
+        if (currType!=null && currType.equals("int[])")) array_type = "%_IntegerArray";
+        else if (currType!=null && currType.equals("boolean[]")) array_type = "%_BooleanArray";
+        return _ret;
     }
 
      /**
@@ -715,30 +735,48 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         String name = n.f0.toString();
         currType = symbolTable.find_type_in_scope(name, currMethod, currClass);
 
-        if (argu == "Expression" && currClass!=null && currMethod!=null && symbolTable.is_field(name, currMethod, currClass)==true){
+        if (argu!=null && argu.equals("Expression") && currClass!=null && currMethod!=null && symbolTable.is_field(name, currMethod, currClass)==true){
            
                 int offset = offsets.find_field_offset(currClass, name)+8;
                 String type = get_ir_type(symbolTable.find_type_in_scope(name, currMethod, currClass));
-    
+
                 String new_reg, prev_reg;
                 new_reg = get_reg();
                 System.out.println("\t" +new_reg + " = getelementptr i8, i8* %this, i32 " + offset);
-                prev_reg = new_reg;
-                new_reg = get_reg();
-                System.out.println("\t" +new_reg + " = bitcast i8* " + prev_reg + " to " + type + "*");
-                prev_reg = new_reg;
-                new_reg = get_reg();
-                System.out.println("\t" +new_reg + " = load " + type + ", " + type + "* " + prev_reg);
+                if (currType.equals("int[]") || currType.equals("boolean[]")) {
+                    prev_reg = new_reg;
+                    new_reg = get_reg();
+                    System.out.println("\t" +new_reg + " = bitcast i8* " + prev_reg + " to " + type + "*");
+                }
+                else {
+                    prev_reg = new_reg;
+                    new_reg = get_reg();
+                    System.out.println("\t" +new_reg + " = bitcast i8* " + prev_reg + " to " + type + "*");
+                    prev_reg = new_reg;
+                    new_reg = get_reg();
+                    System.out.println("\t" +new_reg + " = load " + type + ", " + type + "* " + prev_reg);
+
+                }
+                if (type.equals("%_IntegerArray") || type.equals("%_BooleanArray")) {System.err.println(type);array_type = type;}
                 return new_reg;
         }
-        else if (argu == "Expression"){
+        else if (argu!=null && argu.equals("Expression")){
             String type = get_ir_type(symbolTable.find_type_in_scope(name, currMethod, currClass));
             String reg = get_reg();
-            System.out.println("\t" + reg + " = load " + type + ", " + type + "* %"+name);
-            return reg;
+            if (type.equals("%_IntegerArray") || type.equals("%_BooleanArray")) {
+                System.err.println(type);
+                array_type = type;
+                return  "%"+name;
+            }
+            else {
+
+                System.out.println("\t" + reg + " = load " + type + ", " + type + "* %"+name);
+                return reg;
+            }
+            
             
         }
-        else if (argu == "lvalue" && currClass!=null && currMethod!=null && symbolTable.is_field(name, currMethod, currClass)==true ){
+        else if (argu!=null && argu.equals("lvalue") && currClass!=null && currMethod!=null && symbolTable.is_field(name, currMethod, currClass)==true ){
             int offset = offsets.find_field_offset(currClass, name)+8;
 
             String new_reg, prev_reg;
@@ -747,10 +785,13 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
             System.out.println("\t" +new_reg + " = getelementptr i8, i8* %this, i32 " + offset);
             prev_reg = new_reg;
             new_reg = get_reg();
-            System.out.println("\t" +new_reg + " = bitcast i8* " + prev_reg + " to " + type + "*"); //TODO is i8* the correct bitcast?
+            System.out.println("\t" +new_reg + " = bitcast i8* " + prev_reg + " to " + type + "*"); //TODO is i8* correct?
+            if (type.equals("%_IntegerArray") || type.equals("%_BooleanArray")) {System.err.println(type);array_type = type;}
             return new_reg;
         }
-        else if (argu == "lvalue"){
+        else if (argu!=null && argu.equals("lvalue")){
+            String type = get_ir_type(symbolTable.find_type_in_scope(name, currMethod, currClass));
+            if (type.equals("%_IntegerArray") || type.equals("%_BooleanArray")) {System.err.println(type);array_type = type;}
             return "%" + name;
         } 
         else {
@@ -813,16 +854,35 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         /* If not oob */
         System.out.println(labelcont + ":");
         new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = add i32 " + size + ", 1"); /* size of array is size+1 so that in the first position we insert the size for oob checking */
+        String array_struct_reg = new_reg;
+        // System.out.println("\t" + new_reg + " = add i32 " + size + ", 1"); /* size of array is size+1 so that in the first position we insert the size for oob checking */
+        System.out.println("\t" + array_struct_reg + " = alloca %_IntegerArray");
         prev_reg= new_reg;
         new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = call i8* @calloc(i32 4, i32 " + prev_reg + ")"); /* calloc size+1 */
-        prev_reg= new_reg;
-        new_reg = get_reg();
-
-        /* store the size */
-        System.out.println("\t" + new_reg + " = bitcast i8* "+ prev_reg+ " to i32*"); 
+        /* get element in 0 position that is the size and store the size there */
+        System.out.println("\t" + new_reg + " = getelementptr %_IntegerArray, %_IntegerArray* "+ array_struct_reg + ", i32 0, i32 0");
         System.out.println("\tstore i32 " + size + ", i32* " + new_reg);
+        
+        /* get element in 1 position that is the actual array and calloc the array */
+        prev_reg= new_reg;
+        String array_reg = new_reg = get_reg();
+        System.out.println("\t" + array_reg + " = getelementptr %_IntegerArray, %_IntegerArray* "+ array_struct_reg + ", i32 0, i32 1");
+        prev_reg= new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = call i8* @calloc(i32 4, i32 " + size + ")"); /* calloc size */
+        prev_reg= new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = bitcast i8* " + prev_reg + " to i32*"); /* calloc size */
+        System.out.println("\tstore i32* " + new_reg + ", i32** " + array_reg);
+        prev_reg= new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = load %_IntegerArray, %_IntegerArray* " + array_struct_reg);
+        // prev_reg= new_reg;
+        // new_reg = get_reg();
+
+        // /* store the size */
+        // System.out.println("\t" + new_reg + " = bitcast i8* "+ prev_reg+ " to i32*"); 
+        // System.out.println("\tstore i32 " + size + ", i32* " + new_reg);
 
         return new_reg;
     }
