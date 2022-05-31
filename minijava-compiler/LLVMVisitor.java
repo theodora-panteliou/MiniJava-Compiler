@@ -7,24 +7,28 @@ import java.util.List;
 import syntaxtree.*;
 import visitor.GJDepthFirst;
 
-/* FisrtVisitor fills the symbol table (catches double decalaration errors, type mismatch for overriding) */
+/* LLVMVisitors generates LLVM IR */
 
 public class LLVMVisitor extends GJDepthFirst<String,String> {
     SymbolTable symbolTable = null;
     Offset offsets = null;
+
+    String currClass = null; /* for scope */
+    String currMethod = null; /* for scope */
+    String currReg = null;
+    String array_type = null; /* keeps int[] or boolean[] to cast types in ArrayLookup and ArrayAssignment */
+
+    ArrayList<List<String>> expression_list = new ArrayList<List<String>>(); /* expression_list works as a stack. It keeps the lists of expression lists for ExpressionList to allow nested ExpressionLists */
+
+    String currType = null;
+
+    /* Counters for registers and labels */
     private int reg_counter = 0;
     private int if_label_counter = 0;
     private int loop_label_counter = 0;
     private int arr_label_counter = 0;
     private int oob_label_counter = 0;
     private int and_label_counter = 0;
-    String currClass = null;
-    String currMethod = null;
-    String currReg;
-    String array_type;
-    ArrayList<List<String>> expression_list = new ArrayList<List<String>>(); /* expression_list works as a stack. It keeps the lists of expression lists for ExpressionList to allow nested ExpressionLists */
-
-    String currType = null;
 
     private String get_reg() {
         currReg = "%_"+reg_counter++;
@@ -58,7 +62,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     LLVMVisitor(SymbolTable st, Offset os){
         this.symbolTable = st;
         this.offsets = os;
-        System.out.println(offsets.make_vtable(st));
+        System.out.println(offsets.make_vtable(st)); /* print vtable */
     }
 
     private String get_ir_type(String arg){
@@ -162,7 +166,6 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f5 -> "}"
     */
     public String visit(ClassDeclaration n, String argu) throws Exception {
-        String _ret=null;
         String ClassName = n.f1.accept(this, argu);
         currClass = ClassName;
 
@@ -170,7 +173,6 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         n.f4.accept(this, ClassName);
 
         currClass = null;
-        // symbolTable.get()
 
         return argu;
     }
@@ -186,8 +188,6 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f7 -> "}"
     */
     public String visit(ClassExtendsDeclaration n, String argu) throws Exception {
-        String _ret=null;
-
         String ClassName = n.f1.accept(this, argu);
         currClass = ClassName;
 
@@ -206,7 +206,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f2 -> ";"
     */
     public String visit(VarDeclaration n, String argu) throws Exception {
-        if (currMethod!=null && currClass!=null) {
+        if (currMethod!=null && currClass!=null) { /* if varDeclaration is inside method allocate space in stack */
             String type = n.f0.accept(this, argu);
             String name = n.f1.accept(this, argu);
             System.out.println("\t%" + name + " = alloca " + get_ir_type(type));
@@ -346,9 +346,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     public String visit(MessageSend n, String argu) throws Exception {
         String res_reg = n.f0.accept(this, "Expression");
         String type = currType;
-        // System.err.println(type);
-        String method_name = n.f2.accept(this, "name"); /* pass this to Identifier so it knows we need the name and not the type */
-        // System.err.println(method_name);
+        String method_name = n.f2.accept(this, null);
 
         int offset = offsets.find_method_offset(type, method_name)/8;
         System.out.println("\t; " + type + "." + method_name + " : " + offset);
@@ -466,7 +464,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         String name = n.f0.accept(this, null); /* get name */
 
         String type = get_ir_type(symbolTable.find_type_in_scope(name, currMethod, currClass));
-        // System.out.println(type);
+
         System.out.println("\tstore " + type + " " + expr_reg + ", " + type + "* " + reg);
         return null;
     }
@@ -533,7 +531,6 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
 
         /* out */
         System.out.println(labelout+":");
-
 
         return _ret;
     }
@@ -731,8 +728,10 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         String name = n.f0.toString();
         currType = symbolTable.find_type_in_scope(name, currMethod, currClass);
         array_type = currType;
-
-        if (argu == "Expression" && currClass!=null && currMethod!=null && symbolTable.is_field(name, currMethod, currClass)==true){
+        if (argu==null){
+            return name;
+        }
+        if (argu.equals("Expression") && currClass!=null && currMethod!=null && symbolTable.is_field(name, currMethod, currClass)==true){
            
                 int offset = offsets.find_field_offset(currClass, name)+8;
                 String type = get_ir_type(symbolTable.find_type_in_scope(name, currMethod, currClass));
@@ -748,14 +747,14 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
                 System.out.println("\t" +new_reg + " = load " + type + ", " + type + "* " + prev_reg);
                 return new_reg;
         }
-        else if (argu == "Expression"){
+        else if (argu.equals("Expression")){
             String type = get_ir_type(symbolTable.find_type_in_scope(name, currMethod, currClass));
             String reg = get_reg();
             System.out.println("\t" + reg + " = load " + type + ", " + type + "* %"+name);
             return reg;
             
         }
-        else if (argu == "lvalue" && currClass!=null && currMethod!=null && symbolTable.is_field(name, currMethod, currClass)==true ){
+        else if (argu.equals("lvalue") && currClass!=null && currMethod!=null && symbolTable.is_field(name, currMethod, currClass)==true ){
             int offset = offsets.find_field_offset(currClass, name)+8;
 
             String new_reg, prev_reg;
@@ -764,10 +763,10 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
             System.out.println("\t" +new_reg + " = getelementptr i8, i8* %this, i32 " + offset);
             prev_reg = new_reg;
             new_reg = get_reg();
-            System.out.println("\t" +new_reg + " = bitcast i8* " + prev_reg + " to " + type + "*"); //TODO is i8* the correct bitcast?
+            System.out.println("\t" +new_reg + " = bitcast i8* " + prev_reg + " to " + type + "*");
             return new_reg;
         }
-        else if (argu == "lvalue"){
+        else if (argu.equals("lvalue")){
             return "%" + name;
         } 
         else {

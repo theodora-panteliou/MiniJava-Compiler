@@ -21,8 +21,8 @@ search_dir="./examples/minijava-extra/"
             java Main "$i" > "$name"
             clang -o out1 "$name"
             ./out1 > llvmout.txt
-            out="$(javac "$i" 2>&1 > javaerror)"
-            if [ "$(javac "$i" 2>&1 > javaerror)" ]; then
+            out="$(javac "$i")"
+            if [ "$(javac "$i")" ]; then
                 echo -e "${FAIL}java compiler not compiling with error $out${RESET}"
                 continue
             fi
