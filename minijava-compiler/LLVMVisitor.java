@@ -562,7 +562,6 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         System.out.println(labelend + ":");
         String reg = get_reg();
         System.out.println("\t" + reg + " = phi i1 [ 0, %" + labelstart + " ], [ " + clause2 + ", %" + label2 + " ]");
-        currType = "boolean";
         return reg;
     }
 
@@ -576,7 +575,6 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         String reg2 = n.f2.accept(this, argu);
         String reg = get_reg();
         System.out.println("\t" + reg + " = icmp slt i32 "+reg1+", " + reg2);
-        currType = "boolean";
         return reg;
     }
 
@@ -590,7 +588,6 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         String reg2 = n.f2.accept(this, argu);
         String reg = get_reg();
         System.out.println("\t" + reg + " = add i32 "+reg1+", " + reg2);
-        currType = "int";
         return reg;
     }
 
@@ -604,7 +601,6 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         String reg2 = n.f2.accept(this, argu);
         String reg = get_reg();
         System.out.println("\t" + reg + " = sub i32 "+reg1+", " + reg2);
-        currType = "int";
         return reg;
     }
 
@@ -618,7 +614,6 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         String reg2 = n.f2.accept(this, argu);
         String reg = get_reg();
         System.out.println("\t" + reg + " = mul i32 "+reg1+", " + reg2);
-        currType = "int";
         return reg;
     }
 
@@ -904,7 +899,6 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         String reg = get_reg();
         String clause = n.f1.accept(this, argu);
         System.out.println("\t" + reg + " = xor i1 1, " + clause);
-        currType = "boolean";
         return reg;
     }
 
