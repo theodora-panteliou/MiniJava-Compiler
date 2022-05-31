@@ -21,6 +21,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     String currClass = null;
     String currMethod = null;
     String currReg;
+    String array_type;
     ArrayList<List<String>> expression_list = new ArrayList<List<String>>(); /* expression_list works as a stack. It keeps the lists of expression lists for ExpressionList to allow nested ExpressionLists */
 
     String currType = null;
@@ -72,7 +73,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
             type = "i32*";
         }
         else if (arg.equals("boolean[]")){
-            type = "i1*";
+            type = "i32*";
         }
         else { /* class object */
             type = "i8*";
@@ -399,6 +400,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         }
         System.out.println(str + ")");
         currType = methodInfo.getReturnType();
+        array_type = type;
         return reg;
     }
 
@@ -482,6 +484,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         String _ret=null;
 
         String array = n.f0.accept(this, "lvalue");
+        String type = array_type;
         String index = n.f2.accept(this, argu);
 
         String labelok = get_oob_label();
@@ -512,7 +515,15 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
 
         /* assign */
         String value = n.f5.accept(this, argu);
-        System.out.println("\tstore i32 " + value + ", i32* " + new_reg);
+        if (type.equals("boolean[]")) {
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " zext i1 " + value + " to i32");
+            System.out.println("\tstore i32 " + new_reg + ", i32* " + prev_reg);
+        }
+        else {
+            System.out.println("\tstore i32 " + value + ", i32* " + new_reg);
+        }
 
         System.out.println("\tbr label %" + labelout);
 
@@ -622,7 +633,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     */
     public String visit(ArrayLookup n, String argu) throws Exception {
         String array = n.f0.accept(this, argu);
-
+        String type = array_type;
         String index = n.f2.accept(this, argu);
 
         String labelok = get_oob_label();
@@ -649,6 +660,11 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         prev_reg = new_reg;
         new_reg = get_reg();
         System.out.println("\t" + new_reg + " = load i32, i32* " + prev_reg);
+        if (type.equals("boolean[]")){
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = trunc i32 " + prev_reg + "to i1");
+        }
 
         System.out.println("\tbr label %" + labelout);
 
@@ -714,6 +730,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     public String visit(Identifier n, String argu) throws Exception {
         String name = n.f0.toString();
         currType = symbolTable.find_type_in_scope(name, currMethod, currClass);
+        array_type = currType;
 
         if (argu == "Expression" && currClass!=null && currMethod!=null && symbolTable.is_field(name, currMethod, currClass)==true){
            
@@ -784,8 +801,35 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     * f4 -> "]"
     */
     public String visit(BooleanArrayAllocationExpression n, String argu) throws Exception {
-        n.f3.accept(this, null);
-        return null;
+        String size = n.f3.accept(this, argu);
+        String new_reg, prev_reg;
+        new_reg = get_reg();
+        /* check if size of array is negative */
+        System.out.println("\t" + new_reg + " = icmp slt i32 " + size + ", 0");
+        String labeloob = get_arr_label();
+        String labelcont = get_arr_label();
+        
+        /* if it is negative throw oob */
+        System.out.println("\t" + "br i1 " + new_reg + ", label %" + labeloob + ", label %" + labelcont);
+        System.out.println(labeloob + ":");
+        System.out.println("\t" + "call void @throw_oob()");
+        System.out.println("\t" + "br label %" + labelcont);
+
+        /* If not oob */
+        System.out.println(labelcont + ":");
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = add i32 " + size + ", 1"); /* size of array is size+1 so that in the first position we insert the size for oob checking */
+        prev_reg= new_reg;
+        new_reg = get_reg();
+        System.out.println("\t" + new_reg + " = call i8* @calloc(i32 4, i32 " + prev_reg + ")"); /* calloc size+1 */
+        prev_reg= new_reg;
+        new_reg = get_reg();
+
+        /* store the size */
+        System.out.println("\t" + new_reg + " = bitcast i8* "+ prev_reg+ " to i32*"); 
+        System.out.println("\tstore i32 " + size + ", i32* " + new_reg);
+        array_type = "boolean[]";
+        return new_reg;
     }
 
     /**
@@ -823,7 +867,8 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         /* store the size */
         System.out.println("\t" + new_reg + " = bitcast i8* "+ prev_reg+ " to i32*"); 
         System.out.println("\tstore i32 " + size + ", i32* " + new_reg);
-
+        
+        array_type = "int[]";
         return new_reg;
     }
 
