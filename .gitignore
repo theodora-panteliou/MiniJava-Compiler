@@ -35,5 +35,4 @@ minijava-compiler/Token.java
 minijava-compiler/TokenMgrError.java
 
 minijava-compiler/*out*
-
-minijava-compiler/smar
+minijava-compiler/*examples*

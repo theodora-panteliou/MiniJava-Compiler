@@ -77,7 +77,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
             type = "i32*";
         }
         else if (arg.equals("boolean[]")){
-            type = "i32*";
+            type = "i8*";
         }
         else { /* class object */
             type = "i8*";
@@ -491,37 +491,74 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         String new_reg, prev_reg;
         new_reg = get_reg();
 
-        /* compare size of array with index */
-        System.out.println("\t" + new_reg + " = load i32*, i32** " + array);
-        prev_reg = new_reg;
-        array = new_reg;
-        new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = load i32, i32 *" + prev_reg);
-        prev_reg = new_reg;
-        new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = icmp ult i32 " + index + ", " + prev_reg);
-        System.out.println("\tbr i1 " + new_reg + ", label %" + labelok + ", label %" + labeloob );
-
-        /* if size is in bounds */
-        System.out.println(labelok+":");
-        prev_reg = new_reg;
-        new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = add i32 " + index + ", 1");
-        prev_reg = new_reg;
-        new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = getelementptr i32, i32* " + array + ", i32 " + prev_reg);
-
-        /* assign */
-        String value = n.f5.accept(this, argu);
-        if (type.equals("boolean[]")) {
+        if (type.equals("int[]")){
+            /* compare size of array with index */
+            System.out.println("\t" + new_reg + " = load i32*, i32** " + array);
+            prev_reg = new_reg;
+            array = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = load i32, i32 *" + prev_reg);
             prev_reg = new_reg;
             new_reg = get_reg();
-            System.out.println("\t" + new_reg + " zext i1 " + value + " to i32");
-            System.out.println("\tstore i32 " + new_reg + ", i32* " + prev_reg);
-        }
-        else {
+            System.out.println("\t" + new_reg + " = icmp ult i32 " + index + ", " + prev_reg);
+            System.out.println("\tbr i1 " + new_reg + ", label %" + labelok + ", label %" + labeloob );
+
+            /* if size is in bounds */
+            System.out.println(labelok+":");
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = add i32 " + index + ", 1");
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = getelementptr i32, i32* " + array + ", i32 " + prev_reg);
+            
+            /* assign */
+            String value = n.f5.accept(this, argu);
             System.out.println("\tstore i32 " + value + ", i32* " + new_reg);
         }
+        else if (type.equals("boolean[]")){
+            /* compare size of array with index */
+            System.out.println("\t" + new_reg + " = load i8*, i8** " + array);
+            array = new_reg;
+
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = bitcast i8* " + prev_reg + " to i32*");
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = load i32, i32 *" + prev_reg);
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = icmp ult i32 " + index + ", " + prev_reg);
+            System.out.println("\tbr i1 " + new_reg + ", label %" + labelok + ", label %" + labeloob );
+
+            /* if size is in bounds */
+            System.out.println(labelok+":");
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = add i32 " + index + ", 4");
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = getelementptr i8, i8* " + array + ", i32 " + prev_reg);
+
+            String value = n.f5.accept(this, argu);
+
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = zext i1 " + value + " to i8");
+            System.out.println("\tstore i8 " + new_reg + ", i8* " + prev_reg);
+        }
+        // /* assign */
+        // String value = n.f5.accept(this, argu);
+        // if (type.equals("boolean[]")) {
+        //     prev_reg = new_reg;
+        //     new_reg = get_reg();
+        //     System.out.println("\t" + new_reg + " zext i1 " + value + " to i32");
+        //     System.out.println("\tstore i32 " + new_reg + ", i32* " + prev_reg);
+        // }
+        // else {
+        //     System.out.println("\tstore i32 " + value + ", i32* " + new_reg);
+        // }
 
         System.out.println("\tbr label %" + labelout);
 
@@ -634,28 +671,53 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         String new_reg, prev_reg;
         new_reg = get_reg();
 
-        /* compare size of array with index */
-        System.out.println("\t" + new_reg + " = load i32, i32 *" + array);
-        prev_reg = new_reg;
-        new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = icmp ult i32 " + index + ", " + prev_reg);
-        System.out.println("\tbr i1 " + new_reg + ", label %" + labelok + ", label %" + labeloob );
-
-        /* if size is in bounds */
-        System.out.println(labelok+":");
-        prev_reg = new_reg;
-        new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = add i32 " + index + ", 1");
-        prev_reg = new_reg;
-        new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = getelementptr i32, i32* " + array + ", i32 " + prev_reg);
-        prev_reg = new_reg;
-        new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = load i32, i32* " + prev_reg);
-        if (type.equals("boolean[]")){
+        if (type.equals("int[]")){
+            /* compare size of array with index */
+            System.out.println("\t" + new_reg + " = load i32, i32 *" + array);
             prev_reg = new_reg;
             new_reg = get_reg();
-            System.out.println("\t" + new_reg + " = trunc i32 " + prev_reg + "to i1");
+            System.out.println("\t" + new_reg + " = icmp ult i32 " + index + ", " + prev_reg);
+            System.out.println("\tbr i1 " + new_reg + ", label %" + labelok + ", label %" + labeloob );
+    
+            /* if size is in bounds */
+            System.out.println(labelok+":");
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = add i32 " + index + ", 1");
+
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = getelementptr i32, i32* " + array + ", i32 " + prev_reg);
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = load i32, i32* " + prev_reg);
+        }
+        else if (type.equals("boolean[]")){
+            System.out.println("\t" + new_reg + " = bitcast i8* " + array + " to i32*");
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            /* compare size of array with index */
+            System.out.println("\t" + new_reg + " = load i32, i32 *" + prev_reg);
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = icmp ult i32 " + index + ", " + prev_reg);
+            System.out.println("\tbr i1 " + new_reg + ", label %" + labelok + ", label %" + labeloob );
+    
+            /* if size is in bounds */
+            System.out.println(labelok+":");
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = add i32 " + index + ", 4");
+
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = getelementptr i8, i8* " + array + ", i32 " + prev_reg);
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = load i8, i8* " + prev_reg);
+            prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = trunc i8 " + prev_reg + " to i1");
         }
 
         System.out.println("\tbr label %" + labelout);
@@ -677,7 +739,14 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
     public String visit(ArrayLength n, String argu) throws Exception {
         String expr = n.f0.accept(this, argu);
         String new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = load i32, i32 *" + expr);
+        if (array_type.equals("int[]"))
+            System.out.println("\t" + new_reg + " = load i32, i32 *" + expr);
+        else if (array_type.equals("boolean[]")){
+            System.out.println("\t" + new_reg + " = bitcast i8 *" + expr + " to i32*");
+            String prev_reg = new_reg;
+            new_reg = get_reg();
+            System.out.println("\t" + new_reg + " = load i32, i32 *" + prev_reg);
+        }
         return new_reg;
     }
 
@@ -812,10 +881,11 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         /* If not oob */
         System.out.println(labelcont + ":");
         new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = add i32 " + size + ", 1"); /* size of array is size+1 so that in the first position we insert the size for oob checking */
+        System.out.println("\t" + new_reg + " = add i32 " + size + ", 4"); /* size of array is size+1 so that in the first position we insert the size for oob checking */
         prev_reg= new_reg;
         new_reg = get_reg();
-        System.out.println("\t" + new_reg + " = call i8* @calloc(i32 4, i32 " + prev_reg + ")"); /* calloc size+1 */
+        String to_ret = new_reg;
+        System.out.println("\t" + new_reg + " = call i8* @calloc(i32 1, i32 " + prev_reg + ")"); /* calloc size+1 */
         prev_reg= new_reg;
         new_reg = get_reg();
 
@@ -823,7 +893,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         System.out.println("\t" + new_reg + " = bitcast i8* "+ prev_reg+ " to i32*"); 
         System.out.println("\tstore i32 " + size + ", i32* " + new_reg);
         array_type = "boolean[]";
-        return new_reg;
+        return to_ret;
     }
 
     /**
