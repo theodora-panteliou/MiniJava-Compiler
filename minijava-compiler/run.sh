@@ -7,7 +7,7 @@ SUCCESS="\e[32m"
 RESET="\e[0m"
 
 make
-search_dir="./examples/minijava-extra/"
+search_dir="./examples/"
 # search_dir="./examples/"
 # for search_dir in ["./examples/" "./examples/minijava-extra/"]
 # do

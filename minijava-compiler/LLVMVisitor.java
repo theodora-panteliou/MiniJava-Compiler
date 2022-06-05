@@ -398,7 +398,7 @@ public class LLVMVisitor extends GJDepthFirst<String,String> {
         }
         System.out.println(str + ")");
         currType = methodInfo.getReturnType();
-        array_type = type;
+        array_type = methodInfo.getReturnType();
         return reg;
     }
 
